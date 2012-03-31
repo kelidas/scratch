@@ -3,6 +3,8 @@
 	<name>scratch</name>
 	<comment></comment>
 	<projects>
+		<project>mathkit</project>
+		<project>util</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
