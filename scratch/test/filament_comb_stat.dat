@@ -1,0 +1,104 @@
+Combination ('A', 'phi', 'f', 'fu', 'qf', 'z')  --  0
+run 0 execution time 257.85 0.794322290373
+run 1 execution time 256.68 0.794322290373
+run 2 execution time 64.05 0.794322290373
+Combination ('A', 'phi', 'f', 'fu', 'qf', 'z')  --  1
+run 0 execution time 258.21 0.794322290373
+run 1 execution time 259.66 0.794322290373
+run 2 execution time 64.58 0.794322290373
+Combination ('A', 'phi', 'f', 'fu', 'qf', 'L')  --  0
+run 0 execution time 255.47 11.1715432041
+run 1 execution time 257.17 11.1715432041
+run 2 execution time 61.47 11.1715432041
+Combination ('A', 'phi', 'f', 'fu', 'qf', 'L')  --  1
+run 0 execution time 259.45 11.1715432041
+run 1 execution time -4039.737296 11.1715432041
+run 2 execution time 60.66 11.1715432041
+Combination ('A', 'phi', 'f', 'fu', 'E_mod', 'z')  --  0
+run 0 execution time 267.34 0.904146965894
+run 1 execution time 267.53 0.904146965894
+run 2 execution time 64.19 0.904146965894
+Combination ('A', 'phi', 'f', 'fu', 'E_mod', 'z')  --  1
+run 0 execution time 267.95 0.904146965894
+run 1 execution time 266.15 0.904146965894
+run 2 execution time 64.26 0.904146965894
+Combination ('A', 'phi', 'f', 'fu', 'E_mod', 'L')  --  0
+run 0 execution time 304.93 13.6019169001
+run 1 execution time 300.91 13.6019169001
+run 2 execution time 61.25 13.6019169001
+Combination ('A', 'phi', 'f', 'fu', 'E_mod', 'L')  --  1
+run 0 execution time 306.87 13.6019169001
+run 1 execution time 305.96 13.6019169001
+run 2 execution time 60.43 13.6019169001
+Combination ('A', 'phi', 'f', 'fu', 'z', 'L')  --  0
+run 0 execution time 269.91 0.704101457181
+run 1 execution time 271.73 0.704101457181
+run 2 execution time 57.51 0.704101457181
+Combination ('A', 'phi', 'f', 'fu', 'z', 'L')  --  1
+run 0 execution time 269.04 0.704101457181
+run 1 execution time 268.97 0.704101457181
+run 2 execution time 57.97 0.704101457181
+Combination ('A', 'phi', 'f', 'qf', 'E_mod', 'z')  --  0
+run 0 execution time 264.12 0.874444940129
+run 1 execution time -4033.697296 0.874444940129
+run 2 execution time 231.91 0.874444940129
+Combination ('A', 'phi', 'f', 'qf', 'E_mod', 'z')  --  1
+run 0 execution time 262.54 0.874444940129
+run 1 execution time 264.21 0.874444940129
+run 2 execution time 231.49 0.874444940129
+Combination ('A', 'phi', 'f', 'qf', 'E_mod', 'L')  --  0
+run 0 execution time 251.43 13.2421530493
+run 1 execution time 251.22 13.2421530493
+run 2 execution time 228.41 13.2421530493
+Combination ('A', 'phi', 'f', 'qf', 'E_mod', 'L')  --  1
+run 0 execution time 251.67 13.2421530493
+run 1 execution time 251.81 13.2421530493
+run 2 execution time 228.2 13.2421530493
+Combination ('A', 'phi', 'f', 'qf', 'z', 'L')  --  0
+run 0 execution time 264.73 0.670788916923
+run 1 execution time 260.5 0.670788916923
+run 2 execution time 224.93 0.670788916923
+Combination ('A', 'phi', 'f', 'qf', 'z', 'L')  --  1
+run 0 execution time 260.9 0.670788916923
+run 1 execution time 262.14 0.670788916923
+run 2 execution time 224.4 0.670788916923
+Combination ('A', 'phi', 'f', 'E_mod', 'z', 'L')  --  0
+run 0 execution time -4031.087296 1.21000154911
+run 1 execution time 261.67 1.21000154911
+run 2 execution time 225.75 1.21000154911
+Combination ('A', 'phi', 'f', 'E_mod', 'z', 'L')  --  1
+run 0 execution time 263.76 1.21000154911
+run 1 execution time 268.5 1.21000154911
+run 2 execution time 233.28 1.21000154911
+Combination ('A', 'phi', 'fu', 'qf', 'E_mod', 'z')  --  0
+run 0 execution time 267.92 0.913368299963
+run 1 execution time 269.01 0.913368299963
+run 2 execution time 64.62 0.913368299963
+Combination ('A', 'phi', 'fu', 'qf', 'E_mod', 'z')  --  1
+run 0 execution time 265.69 0.913368299963
+run 1 execution time 265.03 0.913368299963
+run 2 execution time 62.59 0.913368299963
+Combination ('A', 'phi', 'fu', 'qf', 'E_mod', 'L')  --  0
+run 0 execution time 256.61 13.7580743991
+run 1 execution time 257.38 13.7580743991
+run 2 execution time 58.8 13.7580743991
+Combination ('A', 'phi', 'fu', 'qf', 'E_mod', 'L')  --  1
+run 0 execution time 256.63 13.7580743991
+run 1 execution time 256.35 13.7580743991
+run 2 execution time 58.88 13.7580743991
+Combination ('A', 'phi', 'fu', 'qf', 'z', 'L')  --  0
+run 0 execution time 263.1 0.705857280915
+run 1 execution time 265.56 0.705857280915
+run 2 execution time 56.38 0.705857280915
+Combination ('A', 'phi', 'fu', 'qf', 'z', 'L')  --  1
+run 0 execution time -4030.817296 0.705857280915
+run 1 execution time 265.31 0.705857280915
+run 2 execution time 56.32 0.705857280915
+Combination ('A', 'phi', 'fu', 'E_mod', 'z', 'L')  --  0
+run 0 execution time 268.71 1.26178244084
+run 1 execution time 267.49 1.26178244084
+run 2 execution time 56.89 1.26178244084
+Combination ('A', 'phi', 'fu', 'E_mod', 'z', 'L')  --  1
+run 0 execution time 269.75 1.26178244084
+run 1 execution time 267.2 1.26178244084
+run 2 execution time 56.41 1.26178244084
