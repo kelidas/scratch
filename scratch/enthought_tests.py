@@ -29,19 +29,13 @@ import types
 
 
 class EnumExample(HasTraits):
-    priority = Enum('Medium', 'Highest',
-                              'High',
-                              'Medium',
-                              'Low',
-                              'Lowest')
+    a = Trait('Medium', {'Highest':3,
+                              'High':4})
 
-    view = View(Item(name='priority',
-                      editor=EnumEditor(values={
-                          'Highest' : '1:Highest',
-                          'High'    : '2:High',
-                          'Medium'  : '3:Medium',
-                          'Low'     : '4:Low',
-                          'Lowest'  : '5:Lowest', })))
+    b = Trait({'Highest':3,
+                              'High':4})
+
+    view = View('a', 'b')
 
 
 

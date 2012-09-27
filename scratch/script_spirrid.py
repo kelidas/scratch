@@ -27,6 +27,9 @@ if platform.system() == 'Linux':
 elif platform.system() == 'Windows':
     sysclock = time.clock
 
+import os
+os.environ['OPT'] = '-DNDEBUG -g -fwrapv -O3'
+
 def main():
     n_rv = 2
     # set the mean and standard deviation of the two random variables
@@ -41,19 +44,27 @@ def main():
     g_la = pdistrib_la.pdf
     g_xi = pdistrib_xi.pdf
 
-    n_int = 99 # number of discretization points
+    n_int = 2000 # number of discretization points
 
+    th_min = pdistrib_la.ppf(1e-16)
+    th_max = pdistrib_la.ppf(1 - 1e-16)
     # discretize the range (-1,1) symmetrically with n_int points
-    theta_arr = np.linspace(-(1.0 - 1.0 / n_int), 1.0 - 1.0 / n_int , n_int)
+    #theta_arr = np.linspace(-(1.0 - 1.0 / n_int), 1.0 - 1.0 / n_int , n_int)
+    d_la = (th_max - th_min) / n_int
+    d_xi = (th_max - th_min) / n_int
+    theta_arr = np.linspace(th_min + d_la * 0.5, th_max - d_la * 0.5 , n_int)
 
     # cover the random variable symmetrically around the mean 
-    theta_la = m_la + 50 * std_la * theta_arr
-    theta_xi = m_xi + 50 * std_xi * theta_arr
+    #theta_la = m_la + 50 * std_la * theta_arr
+    #theta_xi = m_xi + 50 * std_xi * theta_arr
+    theta_la = theta_arr
+    theta_xi = theta_arr
     print theta_la, theta_xi
 
     # get the size of the integration cell
-    d_la = (100 * std_la) / n_int
-    d_xi = (100 * std_xi) / n_int
+    #d_la = (100 * std_la) / n_int
+    #d_xi = (100 * std_xi) / n_int
+
     print d_la, d_xi
 
     def Heaviside(x):
@@ -106,8 +117,6 @@ def main():
     mu_q_arr = mu_q_vct(eps_arr)
     print 'Regular grid of random variables: elapsed time', sysclock() - start_time
     print 'precision', mu_q_arr - np.array([np.sqrt(3) / 3.*2.])
-    print mu_q_arr
-
 
     code = '''
     double eps = e;
@@ -141,7 +150,7 @@ def main():
 
     for i_eps, eps in enumerate(eps_arr):
         mu_q_arr[i_eps] = weave.inline(code, arg_names, local_dict,
-                                 type_converters=weave.converters.default)
+                                 type_converters=weave.converters.blitz)
 
     print 'precision', mu_q_arr - np.array([np.sqrt(3) / 3.0 * 2.])
 
@@ -240,7 +249,7 @@ def main():
     start_time = sysclock()
     # estimate mean response
     mu_q_arr = mu_q(eps_arr)
-    print 'Grid of constant probabilities: elapsed time', sysclock() - start_time
+    print 'LHS: elapsed time', sysclock() - start_time
     print 'precision', mu_q_arr - np.array([np.sqrt(3) / 3.*2.])
 
     code = '''
@@ -252,7 +261,7 @@ def main():
         double la = la_flat( i_la );
         for( int i_xi = 0; i_xi < n_xi; i_xi++){
             double xi = xi_flat( i_xi );
-        double dG = dG_grid(i_la,i_xi);
+        //double dG = dG_grid(i_la,i_xi);
                 {
                                   q = exp(-la*la) + exp(-xi*xi);
                             }
@@ -260,17 +269,17 @@ def main():
                         mu_q +=  q * 1.0/(n_la* n_xi);
     };
     };
-    return_val = mu_q;        /*I would like to fill in changed locals and globals here...*/      
+    return_val = mu_q;    
     '''
     mu_q_arr = np.zeros_like(eps_arr)
 
-    arg_names = ['e', 'n_la', 'n_xi', 'xi_flat', 'la_flat', 'dG_grid']
+    arg_names = ['e', 'n_la', 'n_xi', 'xi_flat', 'la_flat']
     local_dict = {'e':1.0,
                  'n_la':n_int ** 2,
                  'n_xi':n_int ** 2,
                  'xi_flat':theta_xi,
-                 'la_flat':theta_la,
-                 'dG_grid':dG_grid}
+                 'la_flat':theta_la}
+
 
     for i_eps, eps in enumerate(eps_arr):
         mu_q_arr[i_eps] = weave.inline(code, arg_names, local_dict,
