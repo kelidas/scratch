@@ -1,0 +1,35 @@
+exam.out
+This example shows how to convert unv file to OOFEM input file.
+linearstatic nsteps 1 nmodules 1
+vtkxml tstep_all domain_all primvars 1 1 vars 2 4 1 stype 1
+domain 2dplanestress
+OutputManager tstep_all dofman_all element_all
+ncrosssect 1 nmat 2 nbc 2 nic 0 nltf 1
+SimpleCS 1 thick 1.0 width 1.0
+isole 1 d 0.0 e 15.0 n 0.25 tAlpha 0.0
+isole 2 d 0.0 e 20.0 n 0.25 tAlpha 0.0
+BoundaryCondition 1 loadTimeFunction 1 prescribedvalue 0.0
+ConstantEdgeLoad 2 loadTimeFunction 1 Components 2 10.0 0.0 loadType 3 ndofs 2
+ConstantFunction 1 f(t) 1.0
+#Comment may be inserted anywhere
+#Data for extractor, if necessary
+#%BEGIN_CHECK% tolerance 1.e-8
+## check reactions
+#REACTION tStep 1 number 1 dof 1
+#NODE tStep 1 number 5 dof 1 unknown d
+#%END_CHECK%
+
+group support_nodes
+nodeprop bc 2 1 1
+
+group material_1
+elemprop mat 1 crosssect 1
+etype[44] PlaneStress2d
+
+group material_2
+elemprop mat 2 crosssect 1
+etype[44] PlaneStress2d
+
+group load_edge
+elemprop bLoadNum 2
+etype[11]
