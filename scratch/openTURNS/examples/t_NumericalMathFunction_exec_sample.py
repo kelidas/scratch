@@ -1,0 +1,41 @@
+#! /usr/bin/env python.exe
+
+from openturns import *
+
+TESTPREAMBLE()
+
+try :
+    # Instance creation
+    deviation = NumericalMathFunction("poutre_sample")
+
+    input = Description(4)
+    input[0] = "E"
+    input[1] = "F"
+    input[2] = "L"
+    input[3] = "I"
+    output = Description(1)
+    output[0] = "d"
+    formula = Description(output.getSize())
+    formula[0] = "-F*L^3/(3*E*I)"
+    deviation_analytical = NumericalMathFunction(input, output, formula)
+
+    size = 10
+    inSample = NumericalSample(size, 4)
+    for i in range(size) :
+        fact = (1.0 + float(i) / size)
+        inSample[i][0] = 210.e9 * fact
+        inSample[i][1] = 1000.0 * fact
+        inSample[i][2] = 1.5 * fact
+        inSample[i][3] = 2.e-6 * fact
+
+
+    outSample1 = deviation(inSample)
+    outSample2 = deviation.getEvaluationImplementation()(inSample)
+    outSample3 = deviation_analytical(inSample)
+    print "outSample by sample evaluation=" , repr(outSample1)
+    print "outSample by point evaluation=" , repr(outSample2)
+    print "outSample by analytical function=" , repr(outSample3)
+
+except  :
+    import sys
+    print "t_NumericalMathFunction_exec_sample.py", sys.exc_type, sys.exc_value

@@ -1,0 +1,82 @@
+[General]
+CountOfSimulations=30
+TypeOfCorrCoef=0
+TypeOfSampling=0
+
+[Category]
+Name=Category 1
+
+[Variable]
+Name=x1
+Distribution=NORM
+Mean=6
+Std=0.77478999999999998
+Skew=0
+Kurt=0
+
+[Variable]
+Name=x2
+Distribution=LGN2
+Mean=3.4718
+Std=0.69436000000000009
+Skew=0.60800000000000032
+Kurt=0.66438656000000051
+
+[Variable]
+Name=x3
+Distribution=LGN2
+Mean=2.3559999999999999
+Std=0.2356
+Skew=0.3010000000000001
+Kurt=0.16150601000000009
+
+[Variable]
+Name=x4
+Distribution=GUMX
+Mean=1
+Std=0.10000000000000001
+Skew=1.1395470994024925
+Kurt=2.3999999999999999
+
+[Category]
+Name=Comparative values
+
+[Result]
+Name=G1
+PathToDll=Expression Evaluator
+Function=x1*x1 - 4*x2 - 2*x3*x4
+FORMbeta=2.999850286
+Cp=0
+Ce=0
+Cm=0
+Cr=0
+Cd=0
+RiskpfType=0
+
+[Result]
+Name=G2
+PathToDll=Expression Evaluator
+Function=2*x1*x4 - x2*x3
+FORMbeta=3.500018041
+Cp=0
+Ce=0
+Cm=0
+Cr=0
+Cd=0
+RiskpfType=0
+
+[Result]
+Name=G3
+PathToDll=Expression Evaluator
+Function=x1*x2*x4 - 2*x3
+FORMbeta=4.000832692
+Cp=0
+Ce=0
+Cm=0
+Cr=0
+Cd=0
+RiskpfType=0
+
+[CorrelationMatrix]
+[0,1]=8.000000e-001
+
