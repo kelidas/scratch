@@ -1,0 +1,91 @@
+import numpy as np
+from traits.api import HasTraits, Float, Property, cached_property, \
+    Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
+    Constant, Directory, File, Str, Button, Int, List
+from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
+from traitsui.api import View, Item, Group, OKButton, CodeEditor, VGroup, HSplit
+import os
+import matplotlib.pyplot as plt
+from fnmatch import fnmatch
+
+def load_subdir_lists(dir_name):
+    name_lst = []
+    path_lst = []
+    for path, subdirs, files in os.walk(dir_name):
+        for name in subdirs:
+            name_lst.append(name)
+            path_lst.append(path)
+    return name_lst, path_lst
+
+class Selector(HasTraits):
+
+    f = File(auto_set=False)
+
+    part_name = Str()
+    @on_trait_change('f')
+    def _part_name(self):
+        self.part_name = self.f.split('-')[0]
+
+    traits_view = View(
+                    Item('f'),
+                    title='File Selector',
+                    id='select',
+                    dock='tab',
+                    resizable=True,
+                    width=.5,
+                    height=.5,
+                    buttons=[OKButton])
+
+def loadplot_data(part_name):
+    sn = np.load(part_name + '-sn.npy')
+    x = np.load(part_name + '-x.npy')
+    x_diff = np.load(part_name + '-x_diff.npy')
+    ln_x = np.load(part_name + '-ln_x.npy')
+    ln_x_diff = np.load(part_name + '-ln_x_diff.npy')
+
+    recursion_gn_mp = np.load(part_name + '-gn_mod.npy')
+    cdf_norm = np.load(part_name + '-cdf_norm.npy')
+    weibr_cdf = np.load(part_name + '-weibr_cdf.npy')
+    weibl_cdf = np.load(part_name + '-weibl_cdf.npy')
+
+    gn_diff = np.load(part_name + '-gn_diff.npy')
+    norm_diff = np.load(part_name + '-norm_diff.npy')
+
+    wp_gn = np.load(part_name + '-wp_gn.npy')
+    wp_norm = np.load(part_name + '-norm_wp.npy')
+    weibr_wp = np.load(part_name + '-weibr_wp.npy')
+    weibl_wp = np.load(part_name + '-weibl_wp.npy')
+
+    plt.figure(0)
+    plt.plot(ln_x, recursion_gn_mp, 'r-')
+    plt.plot(ln_x, cdf_norm, 'b-')
+    plt.plot(ln_x, weibr_cdf, 'g-')
+    plt.plot(ln_x, weibl_cdf, 'g-')
+#    y = (x / sn) ** (10 * 4)
+#    y[y > 1] = 1
+#    plt.plot(ln_x, y)
+
+    plt.figure(1)
+    plt.plot(ln_x_diff, gn_diff, 'r-')
+    plt.plot(ln_x_diff, norm_diff, 'b-')
+
+    plt.figure(2)
+    plt.plot(ln_x, wp_gn, 'r-')
+    plt.plot(ln_x, wp_norm, 'b-')
+    plt.plot(ln_x, weibr_wp, 'g-')
+    plt.plot(ln_x, weibl_wp, 'g-')
+    # n_ticks = 20.
+    # plt.yticks(wp_gn[np.arange(0, len(ln_x), int(len(ln_x) / n_ticks))], recursion_gn_mp[np.arange(0, len(ln_x), int(len(ln_x) / n_ticks))])
+
+s = Selector()
+s.configure_traits()
+loadplot_data(s.part_name)
+
+#dirname = os.path.split(os.path.split(s.f)[0])[0]
+#
+#subdir_lst, path_lst = load_subdir_lists(dirname)
+#
+#for path, subdir in zip(path_lst, subdir_lst):
+#    loadplot_data(os.path.join(path, subdir, subdir))
+
+plt.show()
