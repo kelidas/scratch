@@ -1,9 +1,9 @@
 Specifikace monitoru
-Veliďż˝ina: Reactions - Dof(2)
-Zadanďż˝ umďż˝stďż˝nďż˝: X: 0.3000 [m], Y: -0.0500 [m], Uzel sďż˝tďż˝
-Dopoďż˝tenďż˝ umďż˝stďż˝nďż˝: X: 0.3000 [m], Y: -0.0500 [m], Uzel sďż˝tďż˝ 7
-Vďż˝sledky v monitorovacďż˝m bodďż˝
- Hodnoty pďż˝enďż˝sobeny koeficientem 1.000 [-]
+Veličina: Reactions - Dof(2)
+Zadané umístění: X: 0.3000 [m], Y: -0.0500 [m], Uzel sítě
+Dopočtené umístění: X: 0.3000 [m], Y: -0.0500 [m], Uzel sítě 7
+Výsledky v monitorovacím bodě
+ Hodnoty přenásobeny koeficientem 1.000 [-]
 -----------------
  Krok     Hodnota
              [MN]
