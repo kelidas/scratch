@@ -19,7 +19,7 @@ def get_binom_tab(n=1000, binom_tab_name=r'binom_tab.npy'):
         for i in range(1, n + 1):
             for j in range(1, i + 1):
                 binom_tab[i - 1, j - 1] = mp.binomial(i, j) * (-1) ** (j + 1)
-        np.save(os.path.join(MDIR, binom_tab_name))
+        np.save(os.path.join(MDIR, binom_tab_name), binom_tab)
         return binom_tab
     if os.path.exists(os.path.join(MDIR, binom_tab_name)):
         binom_tab = np.load(os.path.join(MDIR, binom_tab_name))
