@@ -1,3 +1,16 @@
+#-------------------------------------------------------------------------------
+#
+# Copyright (c) 2013
+# Author: Václav Sadílek
+# All rights reserved.
+#
+# This software is provided without warranty under the terms of the BSD
+# license included in the top directory "licence.txt" and may be
+# redistributed only under the conditions described in the aforementioned
+# license.
+#
+#-------------------------------------------------------------------------------
+
 import mpmath as mp
 import numpy as np
 import platform
@@ -7,8 +20,8 @@ if platform.system() == 'Linux':
 elif platform.system() == 'Windows':
     sysclock = time.clock
 from fn_lib import weib_cdf
-#import sys
-#sys.setrecursionlimit(10000)
+# import sys
+# sys.setrecursionlimit(10000)
 
 from mp_settings import MPF_ZERO, MPF_ONE
 from binomial_tab import get_binom_tab
@@ -40,7 +53,7 @@ def gn_mp(x, scale, shape, n, timeit=False):
         Cumulative distribution function value for required strength x
 
     Examples
-    --------   
+    --------
     >>> mp.mp.dps = 30
     >>> shape = mp.mpf('6.')
     >>> scale = mp.mpf('1.')
@@ -88,8 +101,8 @@ gn_mp_vect = np.frompyfunc(gn_mp, 5, 1)
 
 def dn_mp(scale, shape, n, timeit=False):
     '''
-    Return value dn that is used for evaluation of the left asymptote of 
-    cumulative distribution function of a bundle strength. 
+    Return value dn that is used for evaluation of the left asymptote of
+    cumulative distribution function of a bundle strength.
 
     Parameters
     ----------
@@ -108,7 +121,7 @@ def dn_mp(scale, shape, n, timeit=False):
         Value of parameter dn
 
     Examples
-    --------   
+    --------
     >>> mp.mp.dps = 30
     >>> shape = mp.mpf('6.')
     >>> scale = mp.mpf('1.')
