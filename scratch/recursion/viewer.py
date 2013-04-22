@@ -76,8 +76,8 @@ def loadplot_data(part_name):
     plt.plot(ln_x, wp_norm, 'b-')
     plt.plot(ln_x, weibr_wp, 'g-')
     plt.plot(ln_x, weibl_wp, 'g-')
-    plt.xlim(-4, 0.5)
-    plt.ylim(-2280, 7)
+    plt.xlim(-4.0, 0.5)
+    # plt.ylim(-2280.0, 7.0)
 
     def form3(x, pos):
         mp.mp.dps = 1000
@@ -99,7 +99,7 @@ def plot_all_n():
         loadplot_data(os.path.join(path, subdir, subdir))
         print subdir
 
-# plot_one()
-plot_all_n()
+plot_one()
+# plot_all_n()
 
 plt.show()
