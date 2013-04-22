@@ -1,15 +1,15 @@
-#-------------------------------------------------------------------------------
-#
+# -------------------------------------------------------------------------------
+# 
 # Copyright (c) 2013
-# Author: Václav Sadílek
+# Author: Vaclav Sadilek
 # All rights reserved.
-#
+# 
 # This software is provided without warranty under the terms of the BSD
 # license included in the top directory "licence.txt" and may be
 # redistributed only under the conditions described in the aforementioned
 # license.
-#
-#-------------------------------------------------------------------------------
+# 
+# -------------------------------------------------------------------------------
 
 import mpmath as mp
 import numpy as np
