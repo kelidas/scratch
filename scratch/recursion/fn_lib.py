@@ -43,7 +43,7 @@ def weibul_plot(g):
 
 weibul_plot_vect = np.frompyfunc(weibul_plot, 1, 1)
 
-def sn(dn, scale, shape, n):
+def sn_mp(dn, scale, shape, n):
     '''Scale parameter for the left asymptote of G_n
     '''
     return scale / dn ** (MPF_ONE / (n * shape))

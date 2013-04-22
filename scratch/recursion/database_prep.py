@@ -12,16 +12,15 @@ if platform.system() == 'Linux':
     sysclock = time.time
 elif platform.system() == 'Windows':
     sysclock = time.clock
-from recursion_mp import gn_mp_vect
+from recursion_mp import gn_mp_vect, dn_mp
 from mp_settings import MPF_ONE, MPF_TWO, MPF_THREE
-from fn_lib import  weib_cdf_vect, norm_cdf_vect, weibul_plot_vect, differentiate
+from fn_lib import  weib_cdf_vect, norm_cdf_vect, weibul_plot_vect, differentiate, sn_mp, weibl_cdf_vect
 
 if platform.system() == 'Linux':
     DATABASE_DIR = r'/media/data/Documents/postdoc/2013/rekurze/recursion_database'
 elif platform.system() == 'Windows':
     DATABASE_DIR = r'E:\Documents\postdoc\2013\rekurze\recursion_database'
 
-# TODO: add sn, dn, weibl_wp, weibl_cdf
 res_lst = ['x',
            'ln_x',
            'gn_mod',
@@ -33,12 +32,16 @@ res_lst = ['x',
            'x_diff',
            'ln_x_diff',
            'gn_diff',
-           'norm_diff']
+           'norm_diff',
+           'sn',
+           'dn',
+           'weibl_wp',
+           'weibl_cdf']
 
 def send_email_smtp(sender, receiver, email):
     # Send the message via local SMTP server.
     s = smtplib.SMTP('ex07.fce.vutbr.cz', 587)
-    #s.set_debuglevel( 1 )
+    # s.set_debuglevel( 1 )
     s.starttls()
     s.login('sadilek.v', base64.b64decode('NTA2ZnVIRXk='))
     # sendmail function takes 3 arguments: sender's address, recipient's address
@@ -113,6 +116,11 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
     wp_gn = weibul_plot_vect(recursion_gn_mp)
     norm_wp = weibul_plot_vect(cdf_norm)
     weibr_wp = weibul_plot_vect(weibr_cdf)
+    dn = dn_mp(scale, shape, n_fil)
+    sn = sn_mp(dn, scale, shape, n_fil)
+    weibl_cdf = weibl_cdf_vect(x, sn, shape, n_fil)
+    weibl_cdf[weibl_cdf > 1] = MPF_ONE
+    weibl_wp = weibul_plot_vect(weibl_cdf)
 
     #===========================================================================
     # Calculate values for differentiations (different array length)
@@ -139,8 +147,8 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
     for res in res_lst:
         np.save(os.path.join(dir_name, name + '-' + res + '.npy'), locals()[res])
 
-    #data = np.vstack((ln_x.T, x.T, recursion_gn_mp.T, wp_gn.T)).T
-    #np.save('n=%02i_m=%.3f_mod.npy' % (n_fil, shape), data)
+    # data = np.vstack((ln_x.T, x.T, recursion_gn_mp.T, wp_gn.T)).T
+    # np.save('n=%02i_m=%.3f_mod.npy' % (n_fil, shape), data)
 
     logfile = open('recursion.log', 'a')
     logfile.write(msg + '\n')
@@ -216,7 +224,7 @@ if __name__ == '__main__':
     # Settings
     #===========================================================================
 
-    CPU_NUM = 1  #multiprocessing.cpu_count() - 1
+    CPU_NUM = 1  # multiprocessing.cpu_count() - 1
 
     #===========================================================================
     # Default run
@@ -254,7 +262,7 @@ if __name__ == '__main__':
     # Run more n (<30) and more shape
     #===========================================================================
     n_proc = 10
-    shape = np.array([3])  #np.array([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 24, 40, 50, 100])
+    shape = np.array([3])  # np.array([3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 24, 40, 50, 100])
     n_fil = np.array([60, 70, 80, 90, 100, 150, 200, 250, 300, 400, 500])
     len_shape_orig = len(shape)
     len_n_orig = len(n_fil)
