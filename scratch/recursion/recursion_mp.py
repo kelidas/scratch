@@ -1,14 +1,14 @@
 # -------------------------------------------------------------------------------
-# 
+#
 # Copyright (c) 2013
 # Author: Vaclav Sadilek
 # All rights reserved.
-# 
+#
 # This software is provided without warranty under the terms of the BSD
 # license included in the top directory "licence.txt" and may be
 # redistributed only under the conditions described in the aforementioned
 # license.
-# 
+#
 # -------------------------------------------------------------------------------
 
 import mpmath as mp
@@ -25,6 +25,8 @@ from fn_lib import weib_cdf
 
 from mp_settings import MPF_ZERO, MPF_ONE
 from binomial_tab import get_binom_tab
+
+__all__ = ['gn_mp', 'gn_mp_vect', 'dn_mp']
 
 binom_tab = get_binom_tab()
 
@@ -166,4 +168,14 @@ if __name__ == '__main__':
 
     recursion_gn_mp = gn_mp_vect(x1, scale, shape, n_fil, True)
     print 'Result of recursion_gn_mp for one x value =', recursion_gn_mp
+
+    # TODO: computational time estimation
+    t_est = 0
+    for i in range(10):
+        start = sysclock()
+        gn_mp_vect(x1, scale, shape, mp.mpf('50'), False)
+        t_est += sysclock() - start
+    print 'time estimation', t_est / 10.
+
+
 
