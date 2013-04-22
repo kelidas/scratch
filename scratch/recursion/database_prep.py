@@ -189,7 +189,10 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
         plt.show()
 
 def execute_pool(func, args_lst, kwds, send_msg=False):
+    '''Using all available CPUs but one for evaluation of a function
+    '''
     try:
+        CPU_NUM = multiprocessing.cpu_count() - 1
         pool = multiprocessing.Pool(processes=CPU_NUM)
         for arg in args_lst:
             pool.apply_async(func, args=arg, kwds=kwds)
@@ -220,12 +223,6 @@ def execute_pool(func, args_lst, kwds, send_msg=False):
     print 'the end'
 
 if __name__ == '__main__':
-    #===========================================================================
-    # Settings
-    #===========================================================================
-
-    CPU_NUM = 1  # multiprocessing.cpu_count() - 1
-
     #===========================================================================
     # Default run
     # data_preparation(n_fil, shape, scale=1, proc_id=0, n_sam=500, n_proc=1, send_msg=False, plot=True)
