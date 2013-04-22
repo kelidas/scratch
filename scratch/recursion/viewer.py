@@ -7,6 +7,8 @@ from traitsui.api import View, Item, Group, OKButton, CodeEditor, VGroup, HSplit
 import os
 import matplotlib.pyplot as plt
 from fnmatch import fnmatch
+import mpmath as mp
+from mp_settings import MPF_ONE
 
 def load_subdir_lists(dir_name):
     name_lst = []
@@ -74,18 +76,30 @@ def loadplot_data(part_name):
     plt.plot(ln_x, wp_norm, 'b-')
     plt.plot(ln_x, weibr_wp, 'g-')
     plt.plot(ln_x, weibl_wp, 'g-')
-    # n_ticks = 20.
-    # plt.yticks(wp_gn[np.arange(0, len(ln_x), int(len(ln_x) / n_ticks))], recursion_gn_mp[np.arange(0, len(ln_x), int(len(ln_x) / n_ticks))])
+    plt.xlim(-4, 0.5)
+    plt.ylim(-2280, 7)
+
+    def form3(x, pos):
+        mp.mp.dps = 1000
+        return '%s %%' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))) * 100, 6)
+    formatter = plt.FuncFormatter(form3)
+    plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(formatter))
 
 s = Selector()
 s.configure_traits()
-loadplot_data(s.part_name)
+def plot_one():
+    loadplot_data(s.part_name)
 
-#dirname = os.path.split(os.path.split(s.f)[0])[0]
-#
-#subdir_lst, path_lst = load_subdir_lists(dirname)
-#
-#for path, subdir in zip(path_lst, subdir_lst):
-#    loadplot_data(os.path.join(path, subdir, subdir))
+def plot_all_n():
+    dirname = os.path.split(os.path.split(s.f)[0])[0]
+
+    subdir_lst, path_lst = load_subdir_lists(dirname)
+
+    for path, subdir in zip(path_lst, subdir_lst):
+        loadplot_data(os.path.join(path, subdir, subdir))
+        print subdir
+
+# plot_one()
+plot_all_n()
 
 plt.show()
