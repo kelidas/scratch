@@ -47,7 +47,7 @@ class DirHandler(Handler):
         info.object.n_dir = self.n_dirs[0]
         info.object.n_dirs = self.n_dirs
 
-class Data(HasTraits):
+class RecursionDatabase(HasTraits):
     database_dir = Directory(DATABASE_DIR)
     shape_dirs = List(Str)
     n_dirs = List(Str)
@@ -63,11 +63,11 @@ class Data(HasTraits):
 
     x = List(Array)
     ln_x = List(Array)
-    gn_mod = List(Array)
-    cdf_norm = List(Array)
+    gn_cdf = List(Array)
+    norm_cdf = List(Array)
     weibr_cdf = List(Array)
     weibl_cdf = List(Array)
-    wp_gn = List(Array)
+    gn_wp = List(Array)
     norm_wp = List(Array)
     weibr_wp = List(Array)
     weibl_wp = List(Array)
@@ -112,72 +112,7 @@ class Data(HasTraits):
                        handler=DirHandler
                        )
 
-class Data(HasTraits):
-    database_dir = Directory(DATABASE_DIR)
-    shape_dirs = List(Str)
-    n_dirs = List(Str)
-    shape_dir = Str()
-    n_dir = Str()
-    n_dir_on = Bool(True)
-
-    shape = List
-
-    scale = Float(1.0, readonly=True)
-
-    number_of_filaments = List
-
-    x = List(Array)
-    ln_x = List(Array)
-    gn_mod = List(Array)
-    cdf_norm = List(Array)
-    weibr_cdf = List(Array)
-    weibl_cdf = List(Array)
-    wp_gn = List(Array)
-    norm_wp = List(Array)
-    weibr_wp = List(Array)
-    weibl_wp = List(Array)
-    x_diff = List(Array)
-    ln_x_diff = List(Array)
-    gn_diff = List(Array)
-    norm_diff = List(Array)
-
-    dn = List
-    sn = List
-
-    load_data = Button()
-
-    def _load_data_fired(self):
-        if self.n_dir_on:
-            print self.n_dir
-            self.__load_n_data(self.n_dir)
-        else:
-            for val in self.n_dirs:
-                print val
-                self.__load_n_data(val)
-
-    def __load_n_data(self, n_dirname):
-        m = re.match(r'n=(?P<number>\d+)_m=(?P<shape>\d+.\d+)', n_dirname)
-        m = m.groupdict()
-        self.shape.append(float(m['shape']))
-        self.number_of_filaments.append(int(m['number']))
-        data = []
-        for res in res_lst:
-            data.append(np.load(os.path.join(self.database_dir,
-                                             self.shape_dir, n_dirname,
-                                             n_dirname + '-%s.npy' % res)))
-            getattr(self, res).append(data)
-            data = []
-
-    traits_view = View(
-                       Item('database_dir'),
-                       Item('shape_dir', editor=EnumEditor(name='handler.shape_dirs')),
-                       Item('n_dir_on'),
-                       Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='n_dir_on'),
-                       Item('load_data', show_label=False),
-                       handler=DirHandler
-                       )
-
-data = Data()
+data = RecursionDatabase()
 data.configure_traits()
 
 exit()
@@ -476,7 +411,7 @@ if __name__ == '__main__':
 # plt.figure(4)
 # plt.title('integ')
 # y_lst = [83.58,56.4,36.1,16.9]
-# 
+#
 # for idx,val in enumerate(dk):
 #    y = tan_log(xx, n, scale, shape, 1)
 #    y2=der_(x,y) + (n-idx-1)*shape

@@ -65,19 +65,19 @@ def gn_distributed(proc_id, n, shape, scale, x_arr):
     std_est = mp.power(shape, -1 / shape) * scale * mp.sqrt(c * (1 - c)) / mp.sqrt(n);
     mean_est = (mp.power(shape , -1 / shape) * scale * c +
                 mp.power(n, -2.0 / 3.0) * scale * mp.power(shape , -(1.0 / shape + 1.0 / 3.0)) * mp.exp(-1.0 / (3 * shape)) * 0.996)
-    cdf_norm = np.zeros(x.shape, dtype=object)
+    norm_cdf = np.zeros(x.shape, dtype=object)
     for idx, x_v in enumerate(x):
-        cdf_norm[idx] = norm_cdf(x_v, mean_est, std_est)
+        norm_cdf[idx] = norm_cdf(x_v, mean_est, std_est)
 
     #===========================================================================
     # Calculate values for Weibull plot
     #===========================================================================
-    wp_gn = np.zeros_like(recursion_gn_mp)
+    gn_wp = np.zeros_like(recursion_gn_mp)
     for i, g in enumerate(recursion_gn_mp):
-        wp_gn[i] = mp.log(-mp.log(1 - g)).real
+        gn_wp[i] = mp.log(-mp.log(1 - g)).real
 
-    wp_norm = np.zeros_like(cdf_norm)
-    for i, g in enumerate(cdf_norm):
+    wp_norm = np.zeros_like(norm_cdf)
+    for i, g in enumerate(norm_cdf):
         wp_norm[i] = mp.log(-mp.log(1 - g)).real
 
     #gn2 = log(-log(1 - gn))
@@ -87,7 +87,7 @@ def gn_distributed(proc_id, n, shape, scale, x_arr):
     # Calculate values for differentiations (different array length)
     #===========================================================================
     ln_x_diff = (ln_x[:-1] + ln_x[1:]) / mp.mpf(2.0)
-    gn_diff = (differentiate(ln_x, wp_gn) - shape) / (shape * n - shape)
+    gn_diff = (differentiate(ln_x, gn_wp) - shape) / (shape * n - shape)
     norm_diff = (differentiate(ln_x, wp_norm) - shape) / (shape * n - shape)
 
     #===========================================================================
@@ -97,9 +97,9 @@ def gn_distributed(proc_id, n, shape, scale, x_arr):
     np.save('n=%02i_m=%.3f_mod-x.npy' % (n, shape), x)
     np.save('n=%02i_m=%.3f_mod-ln_x.npy' % (n, shape), ln_x)
     np.save('n=%02i_m=%.3f_mod-recursion_gn_mp.npy' % (n, shape), recursion_gn_mp)
-    np.save('n=%02i_m=%.3f_mod-cdf_norm.npy' % (n, shape), cdf_norm)
+    np.save('n=%02i_m=%.3f_mod-norm_cdf.npy' % (n, shape), norm_cdf)
 
-    np.save('n=%02i_m=%.3f_mod-wp_gn.npy' % (n, shape), wp_gn)
+    np.save('n=%02i_m=%.3f_mod-gn_wp.npy' % (n, shape), gn_wp)
     np.save('n=%02i_m=%.3f_mod-wp_norm.npy' % (n, shape), wp_norm)
 
     np.save('n=%02i_m=%.3f_mod-ln_x_diff.npy' % (n, shape), ln_x_diff)

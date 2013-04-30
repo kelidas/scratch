@@ -52,3 +52,33 @@ def differentiate(x, y):
     '''Calculate the derivatives for given arrays x and y
     '''
     return np.diff(y) / np.diff(x)
+
+def dk_approx(k, scale, shape, gn_wp, ln_x):
+    '''Calculate approximate position of the tangent
+    '''
+    if isinstance(scale, mp.mpf) == False:
+        scale = mp.mpf('%s' % scale)
+    if isinstance(shape, mp.mpf) == False:
+        scale = mp.mpf('%s' % shape)
+    b_approx = 0
+    c_approx = 100
+    arr_len = len(gn_wp)
+    for i in range(arr_len):
+        b = gn_wp[i] - shape * k / scale * ln_x[i]
+        y = shape * k / scale * ln_x + b
+        counter = np.sum(y < gn_wp)
+        if counter < c_approx:
+            c_approx = counter
+            counter = 0
+            b_approx = b
+        else:
+            counter = 0
+    return mp.exp(b_approx)
+
+
+
+
+
+
+
+

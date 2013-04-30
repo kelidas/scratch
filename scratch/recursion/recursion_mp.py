@@ -170,12 +170,19 @@ if __name__ == '__main__':
     print 'Result of recursion_gn_mp for one x value =', recursion_gn_mp
 
     # TODO: computational time estimation
-    t_est = 0
-    for i in range(10):
-        start = sysclock()
-        gn_mp_vect(x1, scale, shape, mp.mpf('50'), False)
-        t_est += sysclock() - start
-    print 'time estimation', t_est / 10.
+#     t_est = 0
+#     for i in range(10):
+#         start = sysclock()
+#         gn_mp_vect(x1, scale, shape, mp.mpf('50'), False)
+#         t_est += sysclock() - start
+#     t_est = t_est / 10.
+#     print 5.806345e-6 * 100 ** 2.952881
+
+
+
+
+
+
 
 
 

@@ -1,14 +1,15 @@
+import matplotlib.pyplot as plt
 import numpy as np
-from traits.api import HasTraits, Float, Property, cached_property, \
+from traits.api import HasStrictTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
     Constant, Directory, File, Str, Button, Int, List
 from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
 from traitsui.api import View, Item, Group, OKButton, CodeEditor, VGroup, HSplit
 import os
-import matplotlib.pyplot as plt
 from fnmatch import fnmatch
 import mpmath as mp
 from mp_settings import MPF_ONE
+
 
 def load_subdir_lists(dir_name):
     name_lst = []
@@ -19,9 +20,9 @@ def load_subdir_lists(dir_name):
             path_lst.append(path)
     return name_lst, path_lst
 
-class Selector(HasTraits):
+class Selector(HasStrictTraits):
 
-    f = File(auto_set=False)
+    f = File()
 
     part_name = Str()
     @on_trait_change('f')
@@ -45,22 +46,22 @@ def loadplot_data(part_name):
     ln_x = np.load(part_name + '-ln_x.npy')
     ln_x_diff = np.load(part_name + '-ln_x_diff.npy')
 
-    recursion_gn_mp = np.load(part_name + '-gn_mod.npy')
-    cdf_norm = np.load(part_name + '-cdf_norm.npy')
+    recursion_gn_mp = np.load(part_name + '-gn_cdf.npy')
+    norm_cdf = np.load(part_name + '-norm_cdf.npy')
     weibr_cdf = np.load(part_name + '-weibr_cdf.npy')
     weibl_cdf = np.load(part_name + '-weibl_cdf.npy')
 
     gn_diff = np.load(part_name + '-gn_diff.npy')
     norm_diff = np.load(part_name + '-norm_diff.npy')
 
-    wp_gn = np.load(part_name + '-wp_gn.npy')
+    gn_wp = np.load(part_name + '-gn_wp.npy')
     wp_norm = np.load(part_name + '-norm_wp.npy')
     weibr_wp = np.load(part_name + '-weibr_wp.npy')
     weibl_wp = np.load(part_name + '-weibl_wp.npy')
 
     plt.figure(0)
     plt.plot(ln_x, recursion_gn_mp, 'r-')
-    plt.plot(ln_x, cdf_norm, 'b-')
+    plt.plot(ln_x, norm_cdf, 'b-')
     plt.plot(ln_x, weibr_cdf, 'g-')
     plt.plot(ln_x, weibl_cdf, 'g-')
 #    y = (x / sn) ** (10 * 4)
@@ -72,7 +73,7 @@ def loadplot_data(part_name):
     plt.plot(ln_x_diff, norm_diff, 'b-')
 
     plt.figure(2)
-    plt.plot(ln_x, wp_gn, 'r-')
+    plt.plot(ln_x, gn_wp, 'r-')
     plt.plot(ln_x, wp_norm, 'b-')
     plt.plot(ln_x, weibr_wp, 'g-')
     plt.plot(ln_x, weibl_wp, 'g-')
@@ -85,19 +86,24 @@ def loadplot_data(part_name):
     formatter = plt.FuncFormatter(form3)
     plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(formatter))
 
+
+
 s = Selector()
 s.configure_traits()
+
+
 def plot_one():
     loadplot_data(s.part_name)
 
 def plot_all_n():
-    dirname = os.path.split(os.path.split(s.f)[0])[0]
+    dirname = os.path.split(os.path.split(s.part_name)[0])[0]
 
     subdir_lst, path_lst = load_subdir_lists(dirname)
 
     for path, subdir in zip(path_lst, subdir_lst):
         loadplot_data(os.path.join(path, subdir, subdir))
         print subdir
+
 
 plot_one()
 # plot_all_n()

@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import os
 from database_prep import DATABASE_DIR
+import mpmath as mp
+mp.mp.dps = 1000
 
 # dn_slope obtained by linear regression [30:] vs shape parameter
 data = np.loadtxt(os.path.join('txt_data', 'shape-vs-dn_slope.txt'), skiprows=1)
@@ -18,7 +20,7 @@ plt.show()
 
 
 d = os.path.join(DATABASE_DIR, 'm=6.0')
-name = 'n=0010_m=6.0'
+name = 'n=0020_m=6.0'
 
 def fit_data_diff(part_name):
     from scipy.optimize import leastsq
@@ -62,8 +64,57 @@ def fit_data_diff(part_name):
 fit_data_diff(os.path.join(d, name, name))
 
 
-ln_x = np.load(os.path.join(d, name, name) + '-ln_x.npy')
-wp_gn = np.load(os.path.join(d, name, name) + '-wp_gn.npy')
-#np.savetxt('export.txt', [ln_x, wp_gn])
-plt.plot(ln_x, wp_gn)
+
+# PLOT PDF
+for i in list(range(3, 51)) + [100, 150, 200, 250, 300, 400, 500, 1000]:
+    name = 'n=%04i_m=6.0' % i
+    x = np.load(os.path.join(d, name, name) + '-x.npy')
+    ln_x = np.load(os.path.join(d, name, name) + '-ln_x.npy')
+    gn_wp = np.load(os.path.join(d, name, name) + '-gn_cdf.npy')
+    dx = x[1:] - x[:-1]
+    x = (x[1:] + x[:-1]) / 2.0
+    y = (gn_wp[1:] - gn_wp[:-1]) / dx
+    plt.figure(1)
+    plt.plot(x, y, '-x')
 plt.show()
+
+
+
+ln_x = np.load(os.path.join(d, name, name) + '-ln_x.npy')
+gn_wp = np.load(os.path.join(d, name, name) + '-gn_wp.npy')
+
+from fn_lib import dk_approx
+dk = []
+for k in range(1, 21):
+    dk.append(dk_approx(k, 1, 6, gn_wp, ln_x))
+
+
+# sk = []
+# for d in dk:
+#     sk.append(1.0 / np.exp(float(d)) ** (1. / (20.0 * 6.0)))
+#
+# print dk
+# print sk
+
+# np.savetxt('export.txt', [ln_x, gn_wp])
+plt.plot(ln_x, gn_wp)
+plt.plot(ln_x, 6 * 4 * ln_x + 17.2305)
+plt.plot(ln_x, 6 * 3 * ln_x + 8.83375)
+plt.plot(ln_x, 6 * 2 * ln_x + 3.85169)
+plt.plot(ln_x, 6 * 1 * ln_x + 1.38629)
+plt.show(block=False)
+
+plt.figure()
+plt.plot(dk)
+x = np.arange(1, 21, 1)
+plt.plot(x, x ** 1.635 + x)
+
+
+# plt.figure()
+# plt.plot(sk)
+
+plt.show()
+
+
+
+

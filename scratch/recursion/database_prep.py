@@ -23,10 +23,10 @@ elif platform.system() == 'Windows':
 
 res_lst = ['x',
            'ln_x',
-           'gn_mod',
-           'cdf_norm',
+           'gn_cdf',
+           'norm_cdf',
            'weibr_cdf',
-           'wp_gn',
+           'gn_wp',
            'norm_wp',
            'weibr_wp',
            'x_diff',
@@ -108,13 +108,13 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
                 mp.power(n_fil, -MPF_TWO / MPF_THREE) * scale *
                 mp.power(shape , -(MPF_ONE / shape + MPF_ONE / MPF_THREE)) *
                 mp.exp(-MPF_ONE / (MPF_THREE * shape)) * mp.mpf('0.996'))
-    cdf_norm = norm_cdf_vect(x, mean_est, std_est)
+    norm_cdf = norm_cdf_vect(x, mean_est, std_est)
 
     #===========================================================================
     # Calculate values for Weibull plot
     #===========================================================================
-    wp_gn = weibul_plot_vect(recursion_gn_mp)
-    norm_wp = weibul_plot_vect(cdf_norm)
+    gn_wp = weibul_plot_vect(recursion_gn_mp)
+    norm_wp = weibul_plot_vect(norm_cdf)
     weibr_wp = weibul_plot_vect(weibr_cdf)
     dn = dn_mp(scale, shape, n_fil)
     sn = sn_mp(dn, scale, shape, n_fil)
@@ -129,7 +129,7 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
 
     ln_x_diff = (ln_x[:-1] + ln_x[1:]) / MPF_TWO
 
-    gn_diff = (differentiate(ln_x, wp_gn) - shape) / (shape * n_fil - shape)
+    gn_diff = (differentiate(ln_x, gn_wp) - shape) / (shape * n_fil - shape)
 
     norm_diff = (differentiate(ln_x, norm_wp) - shape) / (shape * n_fil - shape)
 
@@ -137,17 +137,17 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
     # Save arrays
     #===========================================================================
     name = 'n=%04i_m=%.1f' % (n_fil, shape)
-    dir_name = os.path.join('m=%.1f' % shape, 'n=%04i_m=%.1f' % (n_fil, shape))
+    dir_name = os.path.join('m=%05.1f' % shape, 'n=%04i_m=%.1f' % (n_fil, shape))
     if os.access(dir_name, os.F_OK) == False:
-        if os.access('m=%.1f' % shape, os.F_OK) == False:
-            os.mkdir('m=%.1f' % shape)
+        if os.access('m=%05.1f' % shape, os.F_OK) == False:
+            os.mkdir('m=%05.1f' % shape)
         os.mkdir(dir_name)
     if n_proc > 1:
         name = '%02i_n=%04i_m=%.1f' % (proc_id, n_fil, shape)
     for res in res_lst:
         np.save(os.path.join(dir_name, name + '-' + res + '.npy'), locals()[res])
 
-    # data = np.vstack((ln_x.T, x.T, recursion_gn_mp.T, wp_gn.T)).T
+    # data = np.vstack((ln_x.T, x.T, recursion_gn_mp.T, gn_wp.T)).T
     # np.save('n=%02i_m=%.3f_mod.npy' % (n_fil, shape), data)
 
     logfile = open('recursion.log', 'a')
@@ -174,7 +174,7 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
     if plot:
         plt.figure()
         plt.plot(x, recursion_gn_mp, 'g-x')
-        plt.plot(x, cdf_norm, 'r-x')
+        plt.plot(x, norm_cdf, 'r-x')
         plt.plot(x, weibr_cdf, 'b-x')
 
         plt.figure()
@@ -182,7 +182,7 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
         plt.plot(ln_x_diff, norm_diff, 'r-x')
 
         plt.figure()
-        plt.plot(ln_x, wp_gn, 'g-x')
+        plt.plot(ln_x, gn_wp, 'g-x')
         plt.plot(ln_x, norm_wp, 'r-x')
         plt.plot(ln_x, weibr_wp, 'b-x')
 
