@@ -1,28 +1,29 @@
+
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
-    Constant, Directory, File, Str, Button, Int, List
+    Constant, Directory, File, Str, Button, Int, List, Interface, implements, Either
 from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
 from traitsui.api import View, Item, Group, HGroup, OKButton, CodeEditor, VGroup, HSplit, EnumEditor, Handler
 import subprocess
 import multiprocessing
 import os
 import re
+import wx
 from numpy import loadtxt, diff, exp, log, array, arange, abs, sqrt, argmax, piecewise
-from scipy.misc import comb
 from mpl_figure_editor import MPLFigureEditor
-import matplotlib.pyplot as plt
+
 from matplotlib.figure import Figure
 from scipy.optimize import fsolve
 from scipy import interpolate
 import numpy as np
 import platform
 import time
+from util.traits.either_type import EitherType
 if platform.system() == 'Linux':
     sysclock = time.time
 elif platform.system() == 'Windows':
     sysclock = time.clock
 from scipy.optimize import leastsq
-from matplotlib.ticker import FuncFormatter
 from database_prep import res_lst, DATABASE_DIR
 
 
@@ -31,29 +32,42 @@ from database_prep import res_lst, DATABASE_DIR
 # ===============================================================================
 
 class DirHandler(Handler):
-    shape_dirs = List(Str)
+    m_dirs = List(Str)
     n_dirs = List(Str)
 
     def object_database_dir_changed(self, info):
-        self.shape_dirs = os.listdir(info.object.database_dir)
+        self.m_dirs = os.listdir(info.object.database_dir)
         # As default value, use the first value in the list:
-        info.object.shape_dir = self.shape_dirs[0]
-        info.object.shape_dirs = self.shape_dirs
+        info.object.m_dir = self.m_dirs[0]
+        info.object.m_dirs = self.m_dirs
 
-    def object_shape_dir_changed(self, info):
-        self.n_dirs = os.listdir(os.path.join(info.object.database_dir, info.object.shape_dir))
+    def object_m_dir_changed(self, info):
+        self.n_dirs = os.listdir(os.path.join(info.object.database_dir, info.object.m_dir))
         # As default value, use the first value in the list:
         self.n_dirs.sort()
         info.object.n_dir = self.n_dirs[0]
         info.object.n_dirs = self.n_dirs
 
-class RecursionDatabase(HasTraits):
+class DirSelector(HasTraits):
     database_dir = Directory(DATABASE_DIR)
-    shape_dirs = List(Str)
+    m_dirs = List(Str)
     n_dirs = List(Str)
-    shape_dir = Str()
+    m_dir = Str()
     n_dir = Str()
     n_dir_on = Bool(True)
+
+    traits_view = View(
+                       Item('database_dir'),
+                       Item('m_dir', editor=EnumEditor(name='handler.m_dirs')),
+                       Item('n_dir_on'),
+                       Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='n_dir_on'),
+                       handler=DirHandler
+                       )
+
+class RecursionData(HasTraits):
+
+    n_dir_lst = List
+    m_dir_lst = List
 
     shape = List
 
@@ -79,40 +93,128 @@ class RecursionDatabase(HasTraits):
     dn = List
     sn = List
 
+class BasePlot(HasTraits):
+    data = Instance(RecursionData)
+
+    figure = Instance(Figure)
+
+    n_dir_lst = DelegatesTo('data')
+    m_dir_lst = DelegatesTo('data')
+
+    n_plot_on = Bool(True)
+
+    draw = Button()
+
+    def _draw_fired(self):
+        figure = self.figure
+        axes = figure.axes[0]
+        axes.clear()
+        axes.plot([1, 2], [1, 2])
+        wx.CallAfter(self.figure.canvas.draw)
+
+    traits_view = View(
+                       'n_plot_on',
+                       Item('draw', show_label=False)
+                       )
+
+class WPPlot(BasePlot):
+    def _draw_fired(self):
+        figure = self.figure
+        axes = figure.axes[0]
+        axes.clear()
+        x = np.array(self.data.ln_x[0], dtype=np.float64)
+        y = np.array(self.data.gn_wp[0], dtype=np.float64)
+        axes.plot(x, y, 'b-')
+        wx.CallAfter(self.figure.canvas.draw)
+
+    traits_view = View(
+                       'n_plot_on',
+                       Item('draw', show_label=False)
+                       )
+
+class ControlPanel(HasTraits):
+
+    data = Instance(RecursionData, ())
+    selector = Instance(DirSelector, ())
+    figure = Instance(Figure)
+    plot = EitherType(names=['base',
+                             'wp plot'],
+                      klasses=[BasePlot,
+                               WPPlot])
+    def _plot_default(self):
+        return BasePlot(data=self.data, figure=self.figure)
+
+    @on_trait_change('plot')
+    def _plot_deflt(self):
+        self.plot.data = self.data
+        self.plot.figure = self.figure
+
     load_data = Button()
 
     def _load_data_fired(self):
-        if self.n_dir_on:
-            print self.n_dir
-            self.__load_n_data(self.n_dir)
+        if self.selector.n_dir_on:
+            print self.selector.n_dir
+            self.__load_n_data(self.selector.n_dir)
+            self.data.n_dir_lst.append(self.selector.n_dir)
         else:
-            for val in self.n_dirs:
-                print val
-                self.__load_n_data(val)
+            for d in self.selector.n_dirs:
+                print d
+                self.__load_n_data(d)
+                self.data.n_dir_lst.append(d)
 
     def __load_n_data(self, n_dirname):
         m = re.match(r'n=(?P<number>\d+)_m=(?P<shape>\d+.\d+)', n_dirname)
         m = m.groupdict()
-        self.shape.append(float(m['shape']))
-        self.number_of_filaments.append(int(m['number']))
+        self.data.shape.append(float(m['shape']))
+        self.data.number_of_filaments.append(int(m['number']))
         data = []
         for res in res_lst:
-            data.append(np.load(os.path.join(self.database_dir,
-                                             self.shape_dir, n_dirname,
+            data.append(np.load(os.path.join(self.selector.database_dir,
+                                             self.selector.m_dir, n_dirname,
                                              n_dirname + '-%s.npy' % res)))
-            getattr(self, res).append(data)
+            getattr(self.data, res).append(data)
             data = []
+        self.data.m_dir_lst.append('m=%05.1f' % float(m['shape']))
 
     traits_view = View(
-                       Item('database_dir'),
-                       Item('shape_dir', editor=EnumEditor(name='handler.shape_dirs')),
-                       Item('n_dir_on'),
-                       Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='n_dir_on'),
-                       Item('load_data', show_label=False),
-                       handler=DirHandler
+                       Group(
+                             Item('selector@', show_label=False),
+                             Item('load_data', show_label=False),
+                             dock='tab',
+                             label='load data'),
+                       Group(
+                             Item('plot', style="custom", dock='tab', show_label=False),
+                             label='plot control'
+                       )
                        )
 
-data = RecursionDatabase()
+
+class MainWindow(HasTraits):
+
+    figure = Instance(Figure)
+
+    panel = Instance(ControlPanel, ())
+
+    def _figure_default(self):
+        figure = Figure()
+        figure.add_axes([0.05, 0.04, 0.9, 0.92])
+        return figure
+
+    def _panel_default(self):
+        return ControlPanel(figure=self.figure)
+
+    view = View(HSplit(
+                       Item('panel', style='custom', show_label=False),
+                       Item('figure', editor=MPLFigureEditor(),
+                            dock='vertical', show_label=False),
+                      ),
+                resizable=True,
+                # height=0.75, width=0.75
+                )
+
+
+
+data = MainWindow()
 data.configure_traits()
 
 exit()

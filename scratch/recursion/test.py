@@ -19,7 +19,7 @@ plt.plot(m, slope * m + intercept, 'r-')
 plt.show()
 
 
-d = os.path.join(DATABASE_DIR, 'm=6.0')
+d = os.path.join(DATABASE_DIR, 'm=006.0')
 name = 'n=0020_m=6.0'
 
 def fit_data_diff(part_name):
