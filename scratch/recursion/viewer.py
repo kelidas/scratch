@@ -105,7 +105,7 @@ def plot_all_n():
         print subdir
 
 
-plot_one()
-# plot_all_n()
+# plot_one()
+plot_all_n()
 
 plt.show()

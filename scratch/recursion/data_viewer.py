@@ -59,13 +59,17 @@ class DirSelector(HasTraits):
     n_dirs = List(Str)
     m_dir = Str()
     n_dir = Str()
-    n_dir_on = Bool(True)
+
+    options = Trait('one number', {'one number':0,
+                                  'one shape':1,
+                                  'all':2})
+
 
     traits_view = View(
                        Item('database_dir'),
                        Item('m_dir', editor=EnumEditor(name='handler.m_dirs')),
-                       Item('n_dir_on'),
-                       Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='n_dir_on'),
+                       Item('options', style='custom'),
+                       Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='options'),
                        handler=DirHandler
                        )
 
@@ -102,7 +106,7 @@ class PlotHandler(Handler):
     n_dirs = List(Str)
     m_dirs = List(Str)
 
-    def object_m_dir_lst_changed(self, info):
+    def object_load_options_changed(self, info):
         if info.object.m_dir_lst != []:
             self.m_dirs = info.object.m_dir_lst
 
@@ -123,6 +127,8 @@ class PlotSelector(HasTraits):
 
     load_options = Button
     def _load_options_fired(self):
+        self.n_selected = []
+        self.m_selected = []
         self.n_dir_lst = self.data.n_dir_lst
         self.m_dir_lst = self.data.m_dir_lst
 
@@ -226,6 +232,8 @@ class WPPlot(BasePlot):
             return '%s %%' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))) * 100, 6)
         formatter = FuncFormatter(form3)
         axes.yaxis.set_major_formatter(FuncFormatter(formatter))
+        axes.set_xlabel('log(x)')
+        axes.set_ylabel('probability [log(-log(1-cdf))]')
 
         self.figure.canvas.draw()
 
@@ -262,11 +270,8 @@ class DiffPlot(BasePlot):
                 x = self.data.ln_x_diff[i]
                 y = self.data.norm_diff[i]
                 axes.plot(x, y, 'b-')
-        def form3(x, pos):
-            mp.mp.dps = 1000
-            return '%s %%' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))) * 100, 6)
-        formatter = FuncFormatter(form3)
-        axes.yaxis.set_major_formatter(FuncFormatter(formatter))
+        axes.set_xlabel('log(x)')
+        axes.set_ylabel('diff(log(x),log(-log(1-cdf)))')
 
         self.figure.canvas.draw()
 
@@ -280,6 +285,40 @@ class DiffPlot(BasePlot):
                              ),
                        Item('draw', show_label=False)
                        )
+
+
+class LAPlot(BasePlot):
+
+    name = 'Left assymptot params plot'
+
+    var_sel = Enum('dn', 'sn')
+
+    def _draw_fired(self):
+        axes = self.figure.axes[0]
+        if self.clear_on:
+            axes.clear()
+        axes.set_title(self.name)
+        yn = []
+        n = []
+        for i in self.plot_selector.plot_list:
+            yn.append(mp.log(getattr(self.data, self.var_sel)[i].reshape(1)[0]))
+            n.append(self.data.number_of_filaments[i])
+        axes.plot(n, yn, 'k-x')
+        axes.set_xlabel('number of filaments')
+        axes.set_ylabel('log(%s)' % self.var_sel)
+
+        self.figure.canvas.draw()
+
+    traits_view = View(
+                       'clear_on',
+                       Group(
+                             Item('var_sel', style='custom', show_label=False),
+                             show_border=True,
+                             label='data select',
+                             ),
+                       Item('draw', show_label=False)
+                       )
+
 
 class PDFPlot(BasePlot):
     name = 'PDF plot'
@@ -349,11 +388,13 @@ class ControlPanel(HasTraits):
     plot = EitherType(names=['wp plot',
                              'pdf plot',
                              'diff_plot',
+                             'left asympt. params plot',
                              'base',
                              ],
                       klasses=[WPPlot,
                                PDFPlot,
                                DiffPlot,
+                               LAPlot,
                                BasePlot,
                                ])
 
@@ -369,24 +410,40 @@ class ControlPanel(HasTraits):
     load_data = Button()
 
     def _load_data_fired(self):
-        if self.selector.n_dir_on:
+        if self.selector.options_ == 0:
+            if self.selector.n_dir in self.data.n_dir_lst:
+                print 'yet loaded'
+                return
             print self.selector.n_dir
-            self.__load_n_data(self.selector.n_dir)
+            self.__load_n_data(self.selector.m_dir, self.selector.n_dir)
             self.data.n_dir_lst.append(self.selector.n_dir)
-        else:
+        elif  self.selector.options_ == 1:
             for d in self.selector.n_dirs:
+                if d in self.data.n_dir_lst:
+                    print 'yet loaded'
+                    continue
                 print d
-                self.__load_n_data(d)
+                self.__load_n_data(self.selector.m_dir, d)
                 self.data.n_dir_lst.append(d)
+        else:
+            for m in self.selector.m_dirs:
+                self.selector.m_dir = m
+                for d in self.selector.n_dirs:
+                    if d in self.data.n_dir_lst:
+                        print 'yet loaded'
+                        continue
+                    print m, d
+                    self.__load_n_data(m, d)
+                    self.data.n_dir_lst.append(d)
 
-    def __load_n_data(self, n_dirname):
+    def __load_n_data(self, m_dirname, n_dirname):
         m = re.match(r'n=(?P<number>\d+)_m=(?P<shape>\d+.\d+)', n_dirname)
         m = m.groupdict()
         self.data.shape.append(float(m['shape']))
         self.data.number_of_filaments.append(int(m['number']))
         for res in res_lst:
             data = (np.load(os.path.join(self.selector.database_dir,
-                                             self.selector.m_dir, n_dirname,
+                                             m_dirname, n_dirname,
                                              n_dirname + '-%s.npy' % res)))
             getattr(self.data, res).append(data)
             data = []

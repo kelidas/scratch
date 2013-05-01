@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from database_prep import res_lst
+from recursion.database_prep import res_lst
 import numpy as np
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 import shutil
 import mpmath as mp
-from database_prep import DATABASE_DIR
+from recursion.database_prep import DATABASE_DIR
 
 class Selector(HasTraits):
 
@@ -70,25 +70,30 @@ def loadplot_data(part_name):
     return mask
 
 if __name__ == '__main__':
-    s = Selector(d=DATABASE_DIR)
-    #s.configure_traits()
+    s = Selector(d=os.path.join(DATABASE_DIR, 'm=020.0'))
+    # s.configure_traits()
 
-    #mask = loadplot_data(os.path.join(s.d, s.name))
-    #plt.show()
+    # mask = loadplot_data(os.path.join(s.d, s.name))
+    # plt.show()
     #
-    #for res in res_lst:
+    # for res in res_lst:
     #    data = np.load(os.path.join(s.d, s.name + '-%s.npy' % res))
     #    data = data[mask]
     #    np.save(os.path.join(s.d, s.name + '-%s.npy' % res), data)
     #
-    #shutil.move(os.path.join(s.d), os.path.join(os.path.split(s.d)[0] + '_checked', s.name))
+    # shutil.move(os.path.join(s.d), os.path.join(os.path.split(s.d)[0] + '_checked', s.name))
 
     # clear inf values
-    #subdir_lst, path_lst = load_subdir_lists(s.d)
-    #for sub in subdir_lst:
-    #    for res in res_lst:
-    #        data = np.load(os.path.join(s.d, sub, sub + '-%s.npy' % res))
-    #        mask = (data == -mp.inf) + (data == mp.inf)
+    data = np.load(os.path.join(s.d, 'n=0033_m=20.0', 'n=0033_m=20.0' + '-dn.npy'))
+    print data
+
+    subdir_lst, path_lst = load_subdir_lists(s.d)
+    for sub in subdir_lst:
+        # for res in res_lst:
+        data = np.load(os.path.join(s.d, sub, sub + '-dn.npy'))
+        mask = (data == -mp.nan) + (data == mp.nan)
+        mp.mp.dps = 10
+        print data
     #        if np.sum(mask) > 0:
     #            mask = ~mask
     #            for res in res_lst:
@@ -98,9 +103,9 @@ if __name__ == '__main__':
     #            print sub
 
     # delete last value in diff arrays
-    #res_lst = ['gn_diff', 'ln_x_diff', 'norm_diff', 'x_diff']
-    #subdir_lst, path_lst = load_subdir_lists(s.d)
-    #for sub in subdir_lst:
+    # res_lst = ['gn_diff', 'ln_x_diff', 'norm_diff', 'x_diff']
+    # subdir_lst, path_lst = load_subdir_lists(s.d)
+    # for sub in subdir_lst:
     #    for res in res_lst:
     #        data = np.load(os.path.join(s.d, sub, sub + '-%s.npy' % res))
     #        np.save(os.path.join(s.d, sub, sub + '-%s.npy' % res), data[:-1])
