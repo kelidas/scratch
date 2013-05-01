@@ -70,10 +70,10 @@ for i in list(range(3, 51)) + [100, 150, 200, 250, 300, 400, 500, 1000]:
     name = 'n=%04i_m=6.0' % i
     x = np.load(os.path.join(d, name, name) + '-x.npy')
     ln_x = np.load(os.path.join(d, name, name) + '-ln_x.npy')
-    gn_wp = np.load(os.path.join(d, name, name) + '-gn_cdf.npy')
+    gn_cdf = np.load(os.path.join(d, name, name) + '-gn_cdf.npy')
     dx = x[1:] - x[:-1]
     x = (x[1:] + x[:-1]) / 2.0
-    y = (gn_wp[1:] - gn_wp[:-1]) / dx
+    y = (gn_cdf[1:] - gn_cdf[:-1]) / dx
     plt.figure(1)
     plt.plot(x, y, '-x')
 plt.show()
@@ -82,6 +82,7 @@ plt.show()
 
 ln_x = np.load(os.path.join(d, name, name) + '-ln_x.npy')
 gn_wp = np.load(os.path.join(d, name, name) + '-gn_wp.npy')
+
 
 from fn_lib import dk_approx
 dk = []

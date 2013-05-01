@@ -24,6 +24,7 @@ class _MPLFigureEditor(Editor):
 
     def update_editor(self):
         figure = self.value
+        figure.canvas.mpl_connect('key_press_event', self.key_press_callback)
         figure.canvas.draw()
 
     def _create_canvas(self, parent):
@@ -45,6 +46,26 @@ class _MPLFigureEditor(Editor):
         sizer.Add(toolbar.statbar, 0, wx.EXPAND)
         self.value.canvas.SetMinSize((100, 100))
         return panel
+
+    def key_press_callback(self, event):
+        'whenever a key is pressed'
+        figure = self.value
+        if not event.inaxes: return
+        if event.key == 'l':
+            if figure.axes[0].get_xscale() == 'log':
+                figure.axes[0].set_xscale('linear')
+                figure.canvas.draw()
+            else:
+                figure.axes[0].set_xscale('log')
+                figure.canvas.draw()
+
+        if event.key == 'k':
+            if figure.axes[0].get_yscale() == 'log':
+                figure.axes[0].set_yscale('linear')
+                figure.canvas.draw()
+            else:
+                figure.axes[0].set_yscale('log')
+                figure.canvas.draw()
 
 class MPLFigureEditor(BasicEditorFactory):
 

@@ -1,9 +1,11 @@
 
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
-    Constant, Directory, File, Str, Button, Int, List, Interface, implements, Either
+    Constant, Directory, File, Str, Button, Int, List, Interface, implements, \
+    Either, Enum
 from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
-from traitsui.api import View, Item, Group, HGroup, OKButton, CodeEditor, VGroup, HSplit, EnumEditor, Handler
+from traitsui.api import View, Item, Group, HGroup, OKButton, CodeEditor, \
+        VGroup, HSplit, EnumEditor, Handler, SetEditor, EnumEditor
 import subprocess
 import multiprocessing
 import os
@@ -18,14 +20,17 @@ from scipy import interpolate
 import numpy as np
 import platform
 import time
-from util.traits.either_type import EitherType
+from either_type import EitherType
 if platform.system() == 'Linux':
     sysclock = time.time
 elif platform.system() == 'Windows':
     sysclock = time.clock
 from scipy.optimize import leastsq
 from database_prep import res_lst, DATABASE_DIR
-
+from mp_settings import MPF_ONE
+import mpmath as mp
+from matplotlib.ticker import FuncFormatter
+import matplotlib.pyplot as plt
 
 # ===============================================================================
 # Data Viewer
@@ -93,61 +98,273 @@ class RecursionData(HasTraits):
     dn = List
     sn = List
 
-class BasePlot(HasTraits):
+class PlotHandler(Handler):
+    n_dirs = List(Str)
+    m_dirs = List(Str)
+
+    def object_m_dir_lst_changed(self, info):
+        if info.object.m_dir_lst != []:
+            self.m_dirs = info.object.m_dir_lst
+
+    def object_m_selected_changed(self, info):
+        n_dirs = []
+        if info.object.n_dir_lst != []:
+            for i in info.object.m_selected:
+                idx = np.where((np.array(info.object.m_dir_lst) == i) == True)
+                if list(idx) != []:
+                    n_dirs += list(np.array(info.object.n_dir_lst)[idx])
+            self.n_dirs = n_dirs
+
+class PlotSelector(HasTraits):
     data = Instance(RecursionData)
+
+    n_dir_lst = List(Str)
+    m_dir_lst = List(Str)
+
+    load_options = Button
+    def _load_options_fired(self):
+        self.n_dir_lst = self.data.n_dir_lst
+        self.m_dir_lst = self.data.m_dir_lst
+
+    m_selected = List()
+
+    n_selected = List()
+
+    plot_list = Property(List)
+    def _get_plot_list(self):
+        lst = []
+        for i in self.m_selected:
+            for j in self.n_selected:
+                l = list(np.argwhere(
+                                np.logical_and(np.array(self.data.m_dir_lst) == i,
+                                               np.array(self.data.n_dir_lst) == j) == True))
+                if l != []:
+                    lst.append(int(l[0]))
+        return lst
+
+    traits_view = View(
+                       Item('load_options', show_label=False),
+                       Item('m_selected', show_label=False,
+                            editor=SetEditor(
+                                          name='handler.m_dirs',
+                                          # ordered=True,
+                                          can_move_all=True,
+                                          left_column_title='Available shapes',
+                                          right_column_title='Selected shapes')),
+                       Item('n_selected', show_label=False,
+                            editor=SetEditor(
+                                           name='handler.n_dirs',
+                                           # ordered=True,
+                                           can_move_all=True,
+                                           left_column_title='Available numbers',
+                                           right_column_title='Selected numbers')),
+                       handler=PlotHandler
+                     )
+
+class BasePlot(HasTraits):
+
+    name = 'base plot'
+
+    data = Instance(RecursionData)
+
+    plot_list = List
 
     figure = Instance(Figure)
 
-    n_dir_lst = DelegatesTo('data')
-    m_dir_lst = DelegatesTo('data')
+    plot_selector = Instance(PlotSelector)
 
-    n_plot_on = Bool(True)
+    clear_on = Bool(True)
 
     draw = Button()
 
     def _draw_fired(self):
-        figure = self.figure
-        axes = figure.axes[0]
-        axes.clear()
-        axes.plot([1, 2], [1, 2])
-        wx.CallAfter(self.figure.canvas.draw)
+        axes = self.figure.axes[0]
+        if self.clear_on:
+            axes.clear()
+        axes.set_title(self.name)
+        axes.plot([1, 2, 3], [1, 2, 2])
+        # wx.CallAfter(self.figure.canvas.draw)
+        self.figure.canvas.draw()
 
     traits_view = View(
-                       'n_plot_on',
-                       Item('draw', show_label=False)
+                       'clear_on',
+                       Item('draw', show_label=False),
                        )
 
 class WPPlot(BasePlot):
+
+    name = 'Weibull plot'
+    gn_on = Bool(True)
+    norm_on = Bool(True)
+    weibl_on = Bool(True)
+    weibr_on = Bool(True)
+
     def _draw_fired(self):
-        figure = self.figure
-        axes = figure.axes[0]
-        axes.clear()
-        x = np.array(self.data.ln_x[0], dtype=np.float64)
-        y = np.array(self.data.gn_wp[0], dtype=np.float64)
-        axes.plot(x, y, 'b-')
-        wx.CallAfter(self.figure.canvas.draw)
+        axes = self.figure.axes[0]
+        if self.clear_on:
+            axes.clear()
+        axes.set_title(self.name)
+        for i in self.plot_selector.plot_list:
+            if self.gn_on:
+                x = self.data.ln_x[i]
+                y = self.data.gn_wp[i]
+                axes.plot(x, y, 'k-')
+            if self.norm_on:
+                x = self.data.ln_x[i]
+                y = self.data.norm_wp[i]
+                axes.plot(x, y, 'b-')
+            if self.weibl_on:
+                x = self.data.ln_x[i]
+                y = self.data.weibl_wp[i]
+                axes.plot(x, y, 'g-')
+            if self.weibr_on:
+                x = self.data.ln_x[i]
+                y = self.data.weibr_wp[i]
+                axes.plot(x, y, 'g-')
+        def form3(x, pos):
+            mp.mp.dps = 1000
+            return '%s %%' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))) * 100, 6)
+        formatter = FuncFormatter(form3)
+        axes.yaxis.set_major_formatter(FuncFormatter(formatter))
+
+        self.figure.canvas.draw()
 
     traits_view = View(
-                       'n_plot_on',
+                       'clear_on',
+                       Group(
+                             'gn_on',
+                             'norm_on',
+                             'weibl_on',
+                             'weibr_on',
+                             show_border=True,
+                             label='data select',
+                             ),
                        Item('draw', show_label=False)
                        )
+
+class DiffPlot(BasePlot):
+
+    name = 'Differential of Weibull plot'
+    gn_on = Bool(True)
+    norm_on = Bool(True)
+
+    def _draw_fired(self):
+        axes = self.figure.axes[0]
+        if self.clear_on:
+            axes.clear()
+        axes.set_title(self.name)
+        for i in self.plot_selector.plot_list:
+            if self.gn_on:
+                x = self.data.ln_x_diff[i]
+                y = self.data.gn_diff[i]
+                axes.plot(x, y, 'k-')
+            if self.norm_on:
+                x = self.data.ln_x_diff[i]
+                y = self.data.norm_diff[i]
+                axes.plot(x, y, 'b-')
+        def form3(x, pos):
+            mp.mp.dps = 1000
+            return '%s %%' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))) * 100, 6)
+        formatter = FuncFormatter(form3)
+        axes.yaxis.set_major_formatter(FuncFormatter(formatter))
+
+        self.figure.canvas.draw()
+
+    traits_view = View(
+                       'clear_on',
+                       Group(
+                             'gn_on',
+                             'norm_on',
+                             show_border=True,
+                             label='data select',
+                             ),
+                       Item('draw', show_label=False)
+                       )
+
+class PDFPlot(BasePlot):
+    name = 'PDF plot'
+    gn_on = Bool(True)
+    norm_on = Bool(True)
+    weibl_on = Bool(False)
+    weibr_on = Bool(False)
+
+    def _draw_fired(self):
+        axes = self.figure.axes[0]
+        if self.clear_on:
+            axes.clear()
+        axes.set_title(self.name)
+        for i in self.plot_selector.plot_list:
+            if self.gn_on:
+                x = (self.data.x[i][1:] + self.data.x[i][:-1]) / 2.
+                dx = (self.data.x[i][1:] - self.data.x[i][:-1])
+                y = ((self.data.gn_cdf[i][ 1:] - self.data.gn_cdf[i][:-1]) / dx)
+                axes.plot(x, y, 'k-')
+            if self.norm_on:
+                x = (self.data.x[i][1:] + self.data.x[i][:-1]) / 2.
+                dx = (self.data.x[i][1:] - self.data.x[i][:-1])
+                y = ((self.data.norm_cdf[i][ 1:] - self.data.norm_cdf[i][:-1]) / dx)
+                axes.plot(x, y, 'b-')
+            if self.weibl_on:
+                x = (self.data.x[i][1:] + self.data.x[i][:-1]) / 2.
+                dx = (self.data.x[i][1:] - self.data.x[i][:-1])
+                y = ((self.data.weibl_cdf[i][ 1:] - self.data.weibl_cdf[i][:-1]) / dx)
+                axes.plot(x, y, 'g-')
+            if self.weibr_on:
+                x = (self.data.x[i][1:] + self.data.x[i][:-1]) / 2.
+                dx = (self.data.x[i][1:] - self.data.x[i][:-1])
+                y = ((self.data.weibr_cdf[i][ 1:] - self.data.weibr_cdf[i][:-1]) / dx)
+                axes.plot(x, y, 'g-')
+
+        self.figure.canvas.draw()
+
+    traits_view = View(
+                       'clear_on',
+                       Group(
+                             'gn_on',
+                             'norm_on',
+                             'weibl_on',
+                             'weibr_on',
+                             show_border=True,
+                             label='data select',
+                             ),
+                       Item('draw', show_label=False)
+                       )
+
+
+
 
 class ControlPanel(HasTraits):
 
     data = Instance(RecursionData, ())
     selector = Instance(DirSelector, ())
-    figure = Instance(Figure)
-    plot = EitherType(names=['base',
-                             'wp plot'],
-                      klasses=[BasePlot,
-                               WPPlot])
+
+    plot_selector = Instance(PlotSelector)
+    def _plot_selector_default(self):
+        return PlotSelector(data=self.data)
+
+    @on_trait_change('data')
+    def _plot_selector_deflt(self):
+        return PlotSelector(data=self.data)
+
+    plot = EitherType(names=['wp plot',
+                             'pdf plot',
+                             'diff_plot',
+                             'base',
+                             ],
+                      klasses=[WPPlot,
+                               PDFPlot,
+                               DiffPlot,
+                               BasePlot,
+                               ])
+
     def _plot_default(self):
-        return BasePlot(data=self.data, figure=self.figure)
+        return WPPlot(data=self.data, figure=self.figure, plot_selector=self.plot_selector)
 
     @on_trait_change('plot')
     def _plot_deflt(self):
         self.plot.data = self.data
         self.plot.figure = self.figure
+        self.plot.plot_selector = self.plot_selector
 
     load_data = Button()
 
@@ -167,9 +384,8 @@ class ControlPanel(HasTraits):
         m = m.groupdict()
         self.data.shape.append(float(m['shape']))
         self.data.number_of_filaments.append(int(m['number']))
-        data = []
         for res in res_lst:
-            data.append(np.load(os.path.join(self.selector.database_dir,
+            data = (np.load(os.path.join(self.selector.database_dir,
                                              self.selector.m_dir, n_dirname,
                                              n_dirname + '-%s.npy' % res)))
             getattr(self.data, res).append(data)
@@ -180,12 +396,18 @@ class ControlPanel(HasTraits):
                        Group(
                              Item('selector@', show_label=False),
                              Item('load_data', show_label=False),
-                             dock='tab',
-                             label='load data'),
+                             label='load control',
+                             dock='tab'),
                        Group(
-                             Item('plot', style="custom", dock='tab', show_label=False),
-                             label='plot control'
-                       )
+                             Item('plot_selector', show_label=False, style='custom'),
+                             label='plot selector',
+                             dock='tab'
+                       ),
+                       Group(
+                             Item('plot', style='custom', show_label=False),
+                             label='plot control',
+                             dock='tab'
+                       ),
                        )
 
 
@@ -193,29 +415,36 @@ class MainWindow(HasTraits):
 
     figure = Instance(Figure)
 
-    panel = Instance(ControlPanel, ())
-
-    def _figure_default(self):
-        figure = Figure()
-        figure.add_axes([0.05, 0.04, 0.9, 0.92])
-        return figure
+    panel = Instance(ControlPanel)
 
     def _panel_default(self):
         return ControlPanel(figure=self.figure)
 
+    def _figure_default(self):
+        figure = Figure(tight_layout=True)
+        figure.add_subplot(111)
+        # figure.add_axes([0.2, 0.04, 0.7, 0.8])
+        return figure
+
     view = View(HSplit(
-                       Item('panel', style='custom', show_label=False),
+                       Group(
+                             Item('panel', style='custom', show_label=False),
+                             dock='vertical'
+                             ),
                        Item('figure', editor=MPLFigureEditor(),
                             dock='vertical', show_label=False),
                       ),
+
                 resizable=True,
-                # height=0.75, width=0.75
+                height=0.5, width=0.75
                 )
 
 
 
-data = MainWindow()
-data.configure_traits()
+app = MainWindow()
+app.configure_traits()
+
+
 
 exit()
 
