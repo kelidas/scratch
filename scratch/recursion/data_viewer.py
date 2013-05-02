@@ -398,6 +398,7 @@ class LoadThread(Thread):
             self.load_info_display(self.selector.m_dir + ', ' + self.selector.n_dir)
             self.__load_n_data(self.selector.m_dir, self.selector.n_dir)
             self.data.n_dir_lst.append(self.selector.n_dir)
+            self.wants_abort = True
             self.load_info_display('Finished!')
         elif  self.selector.options_ == 1:
             for d in self.selector.n_dirs:
@@ -408,6 +409,7 @@ class LoadThread(Thread):
                     self.load_info_display(self.selector.m_dir + ', ' + d)
                     self.__load_n_data(self.selector.m_dir, d)
                     self.data.n_dir_lst.append(d)
+            self.wants_abort = True
             self.load_info_display('Finished!')
         else:
             for m in self.selector.m_dirs:
@@ -420,6 +422,7 @@ class LoadThread(Thread):
                         self.load_info_display(m + ', ' + d)
                         self.__load_n_data(m, d)
                         self.data.n_dir_lst.append(d)
+            self.wants_abort = True
             self.load_info_display('Finished!')
 
     def __load_n_data(self, m_dirname, n_dirname):
@@ -493,7 +496,7 @@ class ControlPanel(HasTraits):
 
     traits_view = View(
                        Group(
-                             Item('selector@', show_label=False),
+                             Item('selector@', show_label=False, enabled_when='load_thread.wants_abort'),
                              Item('start_stop_loading', show_label=False),
                              Group(
                              Item('load_info', show_label=False, style='custom'),
