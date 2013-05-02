@@ -31,6 +31,7 @@ from mp_settings import MPF_ONE
 import mpmath as mp
 from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
+from threading import Thread
 
 # ===============================================================================
 # Data Viewer
@@ -385,7 +386,54 @@ class PDFPlot(BasePlot):
                        )
 
 
+class LoadThread(Thread):
 
+    wants_abort = False
+
+    def run(self):
+        if self.selector.options_ == 0:
+            if self.selector.n_dir in self.data.n_dir_lst:
+                self.load_info_display(self.selector.m_dir + ', ' + self.selector.n_dir + ', yet loaded')
+                return
+            self.load_info_display(self.selector.m_dir + ', ' + self.selector.n_dir)
+            self.__load_n_data(self.selector.m_dir, self.selector.n_dir)
+            self.data.n_dir_lst.append(self.selector.n_dir)
+            self.load_info_display('Finished!')
+        elif  self.selector.options_ == 1:
+            for d in self.selector.n_dirs:
+                if self.wants_abort == False:
+                    if d in self.data.n_dir_lst:
+                        self.load_info_display(self.selector.m_dir + ', ' + d + ', yet loaded')
+                        continue
+                    self.load_info_display(self.selector.m_dir + ', ' + d)
+                    self.__load_n_data(self.selector.m_dir, d)
+                    self.data.n_dir_lst.append(d)
+            self.load_info_display('Finished!')
+        else:
+            for m in self.selector.m_dirs:
+                if self.wants_abort == False:
+                    self.selector.m_dir = m
+                    for d in self.selector.n_dirs:
+                        if d in self.data.n_dir_lst:
+                            self.load_info_display(m + ', ' + d + ', yet loaded')
+                            continue
+                        self.load_info_display(m + ', ' + d)
+                        self.__load_n_data(m, d)
+                        self.data.n_dir_lst.append(d)
+            self.load_info_display('Finished!')
+
+    def __load_n_data(self, m_dirname, n_dirname):
+        m = re.match(r'n=(?P<number>\d+)_m=(?P<shape>\d+.\d+)', n_dirname)
+        m = m.groupdict()
+        self.data.shape.append(float(m['shape']))
+        self.data.number_of_filaments.append(int(m['number']))
+        for res in res_lst:
+            data = (np.load(os.path.join(self.selector.database_dir,
+                                             m_dirname, n_dirname,
+                                             n_dirname + '-%s.npy' % res)))
+            getattr(self.data, res).append(data)
+            data = []
+        self.data.m_dir_lst.append('m=%05.1f' % float(m['shape']))
 
 class ControlPanel(HasTraits):
 
@@ -424,53 +472,33 @@ class ControlPanel(HasTraits):
         self.plot.figure = self.figure
         self.plot.plot_selector = self.plot_selector
 
-    load_data = Button()
+    load_thread = Instance(LoadThread)
 
-    def _load_data_fired(self):
-        if self.selector.options_ == 0:
-            if self.selector.n_dir in self.data.n_dir_lst:
-                self.load_info += self.selector.m_dir + self.selector.n_dir + ', yet loaded' + '\n'
-                return
-            self.load_info += self.selector.m_dir + self.selector.n_dir + '\n'
-            self.__load_n_data(self.selector.m_dir, self.selector.n_dir)
-            self.data.n_dir_lst.append(self.selector.n_dir)
-        elif  self.selector.options_ == 1:
-            for d in self.selector.n_dirs:
-                if d in self.data.n_dir_lst:
-                    self.load_info += self.selector.m_dir + d + ', yet loaded' + '\n'
-                    continue
-                self.load_info += self.selector.m_dir + d + '\n'
-                self.__load_n_data(self.selector.m_dir, d)
-                self.data.n_dir_lst.append(d)
+    start_stop_loading = Button('Start/Stop loading')
+
+    def _start_stop_loading_fired(self):
+        if self.load_thread and self.load_thread.isAlive():
+            self.load_thread.wants_abort = True
         else:
-            for m in self.selector.m_dirs:
-                self.selector.m_dir = m
-                for d in self.selector.n_dirs:
-                    if d in self.data.n_dir_lst:
-                        self.load_info += m + d + ', yet loaded' + '\n'
-                        continue
-                    self.load_info += m + d + '\n'
-                    self.__load_n_data(m, d)
-                    self.data.n_dir_lst.append(d)
+            self.load_thread = LoadThread()
+            self.load_thread.load_info_display = self._add_line
+            self.load_thread.data = self.data
+            self.load_thread.selector = self.selector
+            self.load_thread.start()
 
-    def __load_n_data(self, m_dirname, n_dirname):
-        m = re.match(r'n=(?P<number>\d+)_m=(?P<shape>\d+.\d+)', n_dirname)
-        m = m.groupdict()
-        self.data.shape.append(float(m['shape']))
-        self.data.number_of_filaments.append(int(m['number']))
-        for res in res_lst:
-            data = (np.load(os.path.join(self.selector.database_dir,
-                                             m_dirname, n_dirname,
-                                             n_dirname + '-%s.npy' % res)))
-            getattr(self.data, res).append(data)
-            data = []
-        self.data.m_dir_lst.append('m=%05.1f' % float(m['shape']))
+    def _add_line(self, string):
+        """ Adds a line to the textbox display.
+        """
+        self.load_info = (string + '\n' + self.load_info)[0:1000]
 
     traits_view = View(
                        Group(
                              Item('selector@', show_label=False),
-                             Item('load_data', show_label=False),
-                             Item('load_info', show_label=False, springy=True, style='custom'),
+                             Item('start_stop_loading', show_label=False),
+                             Group(
+                             Item('load_info', show_label=False, style='custom'),
+                             label='Load info', show_border=True
+                             ),
                              label='load control',
                              dock='tab', id='control_panel.load_control'),
                        Group(
@@ -511,6 +539,7 @@ class MainWindow(HasTraits):
                             dock='tab', id='main_window.figure'),
                        id='main_window.hsplit',
                        ),
+                title='Recursion Analyzer',
                 id='main_window.view',
                 resizable=True,
                 height=0.5, width=0.75,
@@ -527,187 +556,8 @@ app.configure_traits()
 exit()
 
 
-class DataViewer(HasTraits):
-    data_inst = Instance(Data, ())
-
-    inputfile = DelegatesTo('data_inst')
-
-    shape = DelegatesTo('data_inst')
-
-    scale = DelegatesTo('data_inst')
-
-    number_of_filaments = DelegatesTo('data_inst')
-
-    data = DelegatesTo('data_inst')
-
-    x = DelegatesTo('data_inst')
-    cdf_x = DelegatesTo('data_inst')
-    gauss_x = DelegatesTo('data_inst')
-    weibl_x = DelegatesTo('data_inst')
-    weibr_x = DelegatesTo('data_inst')
-    ln_x = DelegatesTo('data_inst')
-    wp_cdf_x = DelegatesTo('data_inst')
-    wp_gauss_x = DelegatesTo('data_inst')
-    wp_weibl_x = DelegatesTo('data_inst')
-    wp_weibr_x = DelegatesTo('data_inst')
-
-    dn = DelegatesTo('data_inst')
-    dk = DelegatesTo('data_inst')
-
-    tan_on = DelegatesTo('data_inst')
-
-    figure = Instance(Figure)
-    def _figure_default(self):
-        figure = Figure(facecolor='white')
-        figure.add_axes([0.1, 0.1, 0.8, 0.8])
-        return figure
-
-    data_changed = Event(True)
-
-    @on_trait_change('inputfile, tan_on, data_inst. +data_changed')
-    def _redraw(self):
-        figure = self.figure
-        axes = figure.axes[0]
-        axes2 = axes.twinx()
-        axes.clear()
-        axes2.clear()
-
-        def prevod(y):
-            return 1 - exp(-exp(y))
-
-        def update_axes2(axes):
-            y1, y2 = axes.get_ylim()
-            a = axes.get_xticks()
-            # axes2.set_ylim(prevod(y1), prevod(y2))
-            axes2.set_yticks(prevod(a))
-            axes2.figure.canvas.draw()
-
-        axes.callbacks.connect("ylim_changed", update_axes2)
-        axes2.set_ylabel('prob')
-        axes.plot(self.ln_x, self.wp_cdf_x, 'b-', linewidth=2, label='cdf_x')
-        axes.plot(self.ln_x, self.wp_gauss_x, 'g-', linewidth=1, label='gauss_x')
-        axes.plot(self.ln_x, self.wp_weibl_x, 'r-', linewidth=1, label='weibl_x')
-        axes.plot(self.ln_x, self.wp_weibr_x, 'r-', linewidth=1, label='weibr_x')
-        if self.tan_on:
-            for idx, val in enumerate(self.dk):
-                label = None
-                if idx == 0:
-                    label = 'tan'
-                axes.plot(self.ln_x, tan_(self.x, val, self.scale, self.shape,
-                                          idx + 1),
-                          color='grey', label=label)
-        axes.grid()
-        axes.legend(loc=0)
-        axes.set_xlabel('x')
-        axes.set_ylabel('y')
-
-        self.data_changed = True
-
-    traits_view = View(
-                    HSplit(
-                    VGroup(
-                   Item('data_inst@', show_label=False),
-                   label='Config',
-                   id='data_inst',
-                   dock='tab',
-                   ),
-                    VGroup(
-                   Item('figure', editor=MPLFigureEditor(), show_label=False),
-                   label='Plot sheet',
-                    id='plot',
-                    dock='tab',
-                   ),
-                           ),
-                    title='DataViewer',
-                    id='view',
-                    dock='tab',
-                    resizable=True,
-                    width=.5,
-                    height=.5,
-                    buttons=[OKButton])
 
 if __name__ == '__main__':
-    viewer = DataViewer()
-    viewer.configure_traits()
-
-    data = viewer.data_inst
-    print data.shape
-
-    def fit_data():
-        # FIT data
-        def f(a, b, c, d):
-            z = (1 - np.exp(-(x / (a)) ** (b))) ** (c)
-            ret = piecewise(z,
-                        [z < 0, z <= 10 ** (-12), z > 10 ** (-12)],
-                         [lambda z: 0, lambda z: z - 0.5 * z * z + 1 / 6. * z ** 3 - 1 / 24. * z ** 4, lambda z: 1. - exp(-z) ])
-            return piecewise(ret,
-                              [ret <= 10 ** (-12), ret > 10 ** (-12)],
-                              [lambda ret: log(ret) + data.wp_cdf_x.max(), lambda ret: log(-log(1 - ret)) + data.wp_cdf_x.max()])
-            # return np.log(-np.log(1 - np.exp(-(x / s) ** (6 * a)) ** (3 * b)))
-
-        def residuals(p, y, x):
-            err = y - f(*p)
-            return err
-
-        p0 = [ 1., 1., 1., 1.]
-        from scipy.optimize import leastsq
-        x = data.x
-        y = data.wp_cdf_x
-        plsq = leastsq(residuals, p0, args=(y, data.ln_x), ftol=1.49012e-12, xtol=1.49012e-12, maxfev=100000)
-    #    np.savetxt('x.txt', data.x)
-    #    np.savetxt('lnx.txt', data.x)
-    #    np.savetxt('wpcdfx.txt', data.wp_cdf_x)
-        print 'plsq', plsq
-        # np.save(data.inputfile[:-4] + '_plsq.npy', plsq[0])
-        plt.figure(0)
-        plt.plot(data.ln_x, y)
-        plt.plot(data.ln_x, f(*plsq[0]))
-
-        plt.show()
-
-    def plot_derivation():
-        # derivation
-        plt.figure(1)
-        plt.title('deriv_1')
-        plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, log(data.cdf_x)), label='cdf_x')
-        plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, log(data.gauss_x)), label='gauss')
-        plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, log(data.weibl_x)), label='weibl')
-        plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, log(data.weibr_x)), label='weibr')
-
-        for idx, val in enumerate(data.dk):
-            label = None
-            if idx == 0:
-                label = 'tan'
-            y = tan_log(data.x, val, data.scale, data.shape, idx + 1)
-            plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, y), color='black', label=label)
-        plt.legend()
-
-        plt.figure(2)
-        plt.title('deriv_2')
-        plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, log(data.cdf_x)), label='cdf_x')
-        plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, log(data.gauss_x)), label='gauss')
-        plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, log(data.weibl_x)), label='weibl')
-        plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, log(data.weibr_x)), label='weibr')
-
-        x_pos = [0, 0.28, 0.6, 1.16]
-        y = tan_log(data.x, data.number_of_filaments, data.scale, data.shape, 1)
-        f_cdf = interpolate.interp1d(differentiate(data.ln_x, log(data.cdf_x))[::-1], ((data.ln_x[:-1] + data.ln_x[1:]) / 2.)[::-1])
-        f_y = interpolate.interp1d(differentiate(data.ln_x, log(data.weibr_x))[::-1], ((data.ln_x[:-1] + data.ln_x[1:]) / 2.)[::-1])
-        for idx, val in enumerate(data.dk):
-            label = None
-            if idx == 0:
-                label = 'tan'
-            pos_x = f_cdf(data.shape * (idx + 0.5)) - f_y(data.shape / 2.)
-            pos_y = data.shape * idx
-            plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2. + pos_x, differentiate(data.ln_x, y) + pos_y, color='black', label=label)
-    #    plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2., differentiate(data.ln_x, y), color='black', label='tan%i' % 1)
-    #    plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2. - 0.28, differentiate(data.ln_x, y) + 6, color='black', label='tan%i' % 2)
-    #    plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2. - 0.6, differentiate(data.ln_x, y) + 12, color='black', label='tan%i' % 3)
-    #    plt.plot((data.ln_x[:-1] + data.ln_x[1:]) / 2. - 1.16, differentiate(data.ln_x, y) + 18, color='black', label='tan%i' % 4)
-        plt.legend()
-
-
-        plt.show()
 
     def gen_data_all():
         all_dirs = False
@@ -734,85 +584,6 @@ if __name__ == '__main__':
         plt.plot(x, y, linewidth=2)
         # plt.legend(loc=0)
         plt.show()
-
-    def fit_data_diff():
-        # FIT data
-        def f_weib(a, b):
-            z = (x / a) ** b
-            return piecewise(z,
-                    [z < 0, z <= 10 ** (-12), z > 10 ** (-12)],
-                     [lambda z: 0, lambda z: z - 0.5 * z * z + 1 / 6. * z ** 3 - 1 / 24. * z ** 4, lambda z: 1. - exp(-z) ])
-
-        def f_gumb(a, b):
-            return np.exp(-np.exp(-(-x - a) / b))
-
-        def f_gev(a, b, c):
-            return np.exp(-(1 + a * ((-x - b) / c)) ** (-1.0 / a))
-
-        def residuals(p, y, x):
-            err = y - f_gumb(*p)
-            return err
-
-        p0 = [1., 1.]
-        xx = (data.ln_x[:-1] + data.ln_x[1:]) / 2.0
-        y = data.wp_cdf_x
-        y = (differentiate(data.ln_x, y) - data.shape) / (data.shape * data.number_of_filaments - data.shape)
-        # y = f(3, 6)
-        mask = xx < -.3
-        x = xx[mask]
-        y = y[mask]
-        plsq = leastsq(residuals, p0, args=(y, x))  # , ftol=1.49012e-12, xtol=1.49012e-12, maxfev=10000)
-        yy = data.wp_gauss_x
-        yy = (differentiate(data.ln_x, yy) - data.shape) / (data.shape * data.number_of_filaments - data.shape)
-    #    np.savetxt('x.txt', data.x)
-    #    np.savetxt('lnx.txt', data.x)
-    #    np.savetxt('wpcdfx.txt', data.wp_cdf_x)
-        print 'plsq', plsq
-        # np.save(data.inputfile[:-4] + '_plsq.npy', plsq[0])
-        plt.figure(0)
-        plt.plot(x, y, 'k-')
-        plt.plot(xx, yy, 'g--', linewidth=.5)
-        plt.plot(x, f_gumb(*plsq[0]), 'r')
-
-        plt.show()
-
-
-    # fit_data()
-    # plot_derivation()
-    gen_data_all()
-    fit_data_diff()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
