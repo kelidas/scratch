@@ -2,7 +2,7 @@
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
     Constant, Directory, File, Str, Button, Int, List, Interface, implements, \
-    Either, Enum
+    Either, Enum, String
 from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
 from traitsui.api import View, Item, Group, HGroup, OKButton, CodeEditor, \
         VGroup, HSplit, EnumEditor, Handler, SetEditor, EnumEditor
@@ -54,11 +54,13 @@ class DirHandler(Handler):
         info.object.n_dirs = self.n_dirs
 
 class DirSelector(HasTraits):
+
     database_dir = Directory(DATABASE_DIR)
     m_dirs = List(Str)
     n_dirs = List(Str)
     m_dir = Str()
     n_dir = Str()
+
     n_dir_enabled = Property(Bool)
     def _get_n_dir_enabled(self):
         if self.options_ == 0:
@@ -387,6 +389,8 @@ class PDFPlot(BasePlot):
 
 class ControlPanel(HasTraits):
 
+    load_info = String()
+
     data = Instance(RecursionData, ())
     selector = Instance(DirSelector, ())
 
@@ -425,17 +429,17 @@ class ControlPanel(HasTraits):
     def _load_data_fired(self):
         if self.selector.options_ == 0:
             if self.selector.n_dir in self.data.n_dir_lst:
-                print 'yet loaded'
+                self.load_info += self.selector.m_dir + self.selector.n_dir + ', yet loaded' + '\n'
                 return
-            print self.selector.n_dir
+            self.load_info += self.selector.m_dir + self.selector.n_dir + '\n'
             self.__load_n_data(self.selector.m_dir, self.selector.n_dir)
             self.data.n_dir_lst.append(self.selector.n_dir)
         elif  self.selector.options_ == 1:
             for d in self.selector.n_dirs:
                 if d in self.data.n_dir_lst:
-                    print 'yet loaded'
+                    self.load_info += self.selector.m_dir + d + ', yet loaded' + '\n'
                     continue
-                print d
+                self.load_info += self.selector.m_dir + d + '\n'
                 self.__load_n_data(self.selector.m_dir, d)
                 self.data.n_dir_lst.append(d)
         else:
@@ -443,9 +447,9 @@ class ControlPanel(HasTraits):
                 self.selector.m_dir = m
                 for d in self.selector.n_dirs:
                     if d in self.data.n_dir_lst:
-                        print 'yet loaded'
+                        self.load_info += m + d + ', yet loaded' + '\n'
                         continue
-                    print m, d
+                    self.load_info += m + d + '\n'
                     self.__load_n_data(m, d)
                     self.data.n_dir_lst.append(d)
 
@@ -466,6 +470,7 @@ class ControlPanel(HasTraits):
                        Group(
                              Item('selector@', show_label=False),
                              Item('load_data', show_label=False),
+                             Item('load_info', show_label=False, springy=True, style='custom'),
                              label='load control',
                              dock='tab', id='control_panel.load_control'),
                        Group(
@@ -500,8 +505,10 @@ class MainWindow(HasTraits):
         return figure
 
     view = View(HSplit(
-                       Item('panel', style='custom', show_label=False, id='main_window.panel'),
-                       Item('figure', editor=MPLFigureEditor(), show_label=False, id='main_window.figure'),
+                       Item('panel', style='custom', show_label=False,
+                            id='main_window.panel'),
+                       Item('figure', editor=MPLFigureEditor(), show_label=False,
+                            dock='tab', id='main_window.figure'),
                        id='main_window.hsplit',
                        ),
                 id='main_window.view',
