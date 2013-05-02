@@ -59,6 +59,12 @@ class DirSelector(HasTraits):
     n_dirs = List(Str)
     m_dir = Str()
     n_dir = Str()
+    n_dir_enabled = Property(Bool)
+    def _get_n_dir_enabled(self):
+        if self.options_ == 0:
+            return True
+        else:
+            return False
 
     options = Trait('one number', {'one number':0,
                                   'one shape':1,
@@ -66,11 +72,12 @@ class DirSelector(HasTraits):
 
 
     traits_view = View(
-                       Item('database_dir'),
-                       Item('m_dir', editor=EnumEditor(name='handler.m_dirs')),
-                       Item('options', style='custom'),
-                       Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='options'),
-                       handler=DirHandler
+                       Item('database_dir', id='dir_selector.database_dir'),
+                       Item('m_dir', editor=EnumEditor(name='handler.m_dirs'), id='dir_selector.m_dir'),
+                       Item('options', style='custom', id='dir_selector.options'),
+                       Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='n_dir_enabled', id='dir_selector.n_dir'),
+                      handler=DirHandler,
+                       id='dir_selector.main'
                        )
 
 class RecursionData(HasTraits):
@@ -149,22 +156,23 @@ class PlotSelector(HasTraits):
         return lst
 
     traits_view = View(
-                       Item('load_options', show_label=False),
+                       Item('load_options', show_label=False, id='plot_selector.load_options'),
                        Item('m_selected', show_label=False,
                             editor=SetEditor(
                                           name='handler.m_dirs',
                                           # ordered=True,
                                           can_move_all=True,
                                           left_column_title='Available shapes',
-                                          right_column_title='Selected shapes')),
+                                          right_column_title='Selected shapes'), id='plot_selector.m_selected'),
                        Item('n_selected', show_label=False,
                             editor=SetEditor(
                                            name='handler.n_dirs',
                                            # ordered=True,
                                            can_move_all=True,
                                            left_column_title='Available numbers',
-                                           right_column_title='Selected numbers')),
-                       handler=PlotHandler
+                                           right_column_title='Selected numbers'), id='plot_selector.n_selected'),
+                       handler=PlotHandler,
+                       id='plot_selector.main'
                      )
 
 class BasePlot(HasTraits):
@@ -195,6 +203,7 @@ class BasePlot(HasTraits):
     traits_view = View(
                        'clear_on',
                        Item('draw', show_label=False),
+                       id='plot.main'
                        )
 
 class WPPlot(BasePlot):
@@ -247,7 +256,8 @@ class WPPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
-                       Item('draw', show_label=False)
+                       Item('draw', show_label=False),
+                       id='plot.main'
                        )
 
 class DiffPlot(BasePlot):
@@ -283,7 +293,8 @@ class DiffPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
-                       Item('draw', show_label=False)
+                       Item('draw', show_label=False),
+                       id='plot.main'
                        )
 
 
@@ -316,7 +327,8 @@ class LAPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
-                       Item('draw', show_label=False)
+                       Item('draw', show_label=False),
+                       id='plot.main'
                        )
 
 
@@ -366,7 +378,8 @@ class PDFPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
-                       Item('draw', show_label=False)
+                       Item('draw', show_label=False),
+                       id='plot.main'
                        )
 
 
@@ -454,17 +467,20 @@ class ControlPanel(HasTraits):
                              Item('selector@', show_label=False),
                              Item('load_data', show_label=False),
                              label='load control',
-                             dock='tab'),
+                             dock='tab', id='control_panel.load_control'),
                        Group(
                              Item('plot_selector', show_label=False, style='custom'),
                              label='plot selector',
-                             dock='tab'
+                             dock='tab',
+                             id='control_panel.plot_selector',
                        ),
                        Group(
                              Item('plot', style='custom', show_label=False),
                              label='plot control',
-                             dock='tab'
+                             dock='tab',
+                             id='control_panel.plot',
                        ),
+                       id='control_panel.main'
                        )
 
 
@@ -484,16 +500,14 @@ class MainWindow(HasTraits):
         return figure
 
     view = View(HSplit(
-                       Group(
-                             Item('panel', style='custom', show_label=False),
-                             dock='vertical'
-                             ),
-                       Item('figure', editor=MPLFigureEditor(),
-                            dock='vertical', show_label=False),
-                      ),
-
+                       Item('panel', style='custom', show_label=False, id='main_window.panel'),
+                       Item('figure', editor=MPLFigureEditor(), show_label=False, id='main_window.figure'),
+                       id='main_window.hsplit',
+                       ),
+                id='main_window.view',
                 resizable=True,
-                height=0.5, width=0.75
+                height=0.5, width=0.75,
+                buttons=[OKButton],
                 )
 
 

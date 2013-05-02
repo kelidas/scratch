@@ -264,6 +264,7 @@ class DFView(HasTraits):
                                             Item('df@', show_label=False),
                                             label='fourier settings',
                                             show_border=True,
+                                            id='fourier.settings'
                                             ),
                                       Group(
                                             Item('plot_xy'),
@@ -272,6 +273,7 @@ class DFView(HasTraits):
                                             Item('plot_freq_coeff_abs'),
                                             label='plot options',
                                             show_border=True,
+                                            id='fourier.plot_options'
                                             ),
                                      Group(
                                             Item('plot_title', label='title'),
@@ -290,8 +292,9 @@ class DFView(HasTraits):
                                             Item('y_label', enabled_when='label_default==False'),
                                             label='plot settings',
                                             show_border=True,
+                                            id='fourier.plot_settings'
                                             ),
-                                        id='',
+                                        id='fourier.control',
                                         dock='tab',
                                         label='settings',
                                       ),
@@ -299,12 +302,12 @@ class DFView(HasTraits):
                                     Item('figure', editor=MPLFigureEditor(),
                                     resizable=True, show_label=False),
                                     label='Plot sheet',
-                                    id='',
+                                    id='fourier.figure',
                                     dock='tab',
                                     ),
                                  ),
                         title='Fourier series',
-                        id='',
+                        id='fourier.view',
                         dock='tab',
                         resizable=True,
                         width=0.7,
