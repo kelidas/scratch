@@ -426,7 +426,7 @@ class LoadThread(Thread):
             self.load_info_display('Finished!')
 
     def __load_n_data(self, m_dirname, n_dirname):
-        m = re.match(r'n=(?P<number>\d+)_m=(?P<shape>\d+.\d+)', n_dirname)
+        m = re.match(r'm=(?P<shape>\d+.\d+)_n=(?P<number>\d+)', n_dirname)
         m = m.groupdict()
         self.data.shape.append(float(m['shape']))
         self.data.number_of_filaments.append(int(m['number']))
@@ -490,9 +490,9 @@ class ControlPanel(HasTraits):
             self.load_thread.start()
 
     def _add_line(self, string):
-        """ Adds a line to the textbox display.
+        """ Adds a line to the info box display.
         """
-        self.load_info = (string + '\n' + self.load_info)[0:1000]
+        self.load_info = (string + '\n' + self.load_info)  # [0:1000]
 
     traits_view = View(
                        Group(

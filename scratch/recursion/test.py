@@ -20,7 +20,7 @@ plt.show()
 
 
 d = os.path.join(DATABASE_DIR, 'm=006.0')
-name = 'n=0020_m=6.0'
+name = 'm=006.0_n=0020'
 
 def fit_data_diff(part_name):
     from scipy.optimize import leastsq
@@ -67,7 +67,7 @@ fit_data_diff(os.path.join(d, name, name))
 
 # PLOT PDF
 for i in list(range(3, 51)) + [100, 150, 200, 250, 300, 400, 500, 1000]:
-    name = 'n=%04i_m=6.0' % i
+    name = 'm=006.0_n=%04i' % i
     x = np.load(os.path.join(d, name, name) + '-x.npy')
     ln_x = np.load(os.path.join(d, name, name) + '-ln_x.npy')
     gn_cdf = np.load(os.path.join(d, name, name) + '-gn_cdf.npy')

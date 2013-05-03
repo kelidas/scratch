@@ -136,19 +136,16 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
     #===========================================================================
     # Save arrays
     #===========================================================================
-    name = 'n=%04i_m=%.1f' % (n_fil, shape)
-    dir_name = os.path.join('m=%05.1f' % shape, 'n=%04i_m=%.1f' % (n_fil, shape))
+    name = 'm=%05.1f_n=%04i' % (n_fil, shape)
+    dir_name = os.path.join('m=%05.1f' % shape, 'm=%05.1f_n=%04i' % (n_fil, shape))
     if os.access(dir_name, os.F_OK) == False:
         if os.access('m=%05.1f' % shape, os.F_OK) == False:
             os.mkdir('m=%05.1f' % shape)
         os.mkdir(dir_name)
     if n_proc > 1:
-        name = '%02i_n=%04i_m=%.1f' % (proc_id, n_fil, shape)
+        name = '%02i_m=%05.1f_n=%04i' % (proc_id, n_fil, shape)
     for res in res_lst:
         np.save(os.path.join(dir_name, name + '-' + res + '.npy'), locals()[res])
-
-    # data = np.vstack((ln_x.T, x.T, recursion_gn_mp.T, gn_wp.T)).T
-    # np.save('n=%02i_m=%.3f_mod.npy' % (n_fil, shape), data)
 
     logfile = open('recursion.log', 'a')
     logfile.write(msg + '\n')

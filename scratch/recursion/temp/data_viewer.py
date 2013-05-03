@@ -150,7 +150,7 @@ class Data(HasTraits):
 #            np.save(self.inputfile[:-4] + '_dk.npy', np.array(self.dk))
 
     def __get_shape_number(self, name):
-        m = re.match(r'n=(?P<number>\d+)_m=(?P<shape>[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?)', name)
+        m = re.match(r'm=(?P<shape>\d+.\d+)_n=(?P<number>[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?)', name)
         return m.groupdict()
 
     def __load_data(self, infile):
@@ -222,7 +222,7 @@ class DataViewer(HasTraits):
         def update_axes2(axes):
             y1, y2 = axes.get_ylim()
             a = axes.get_xticks()
-            #axes2.set_ylim(prevod(y1), prevod(y2))
+            # axes2.set_ylim(prevod(y1), prevod(y2))
             axes2.set_yticks(prevod(a))
             axes2.figure.canvas.draw()
 
@@ -368,15 +368,15 @@ if __name__ == '__main__':
                 d = Data(inputfile=os.path.join(dirname, dirn, f))
                 x = (d.ln_x[:-1] + d.ln_x[1:]) / 2.0
                 y = d.wp_cdf_x
-                #y = tan_log(d.x, d.number_of_filaments, d.scale, d.shape, 1)
-                #y = (differentiate(d.ln_x, y))
+                # y = tan_log(d.x, d.number_of_filaments, d.scale, d.shape, 1)
+                # y = (differentiate(d.ln_x, y))
                 y = (differentiate(d.ln_x, y) - d.shape) / (d.shape * d.number_of_filaments - d.shape)
                 yy = d.wp_gauss_x
                 yy = (differentiate(d.ln_x, yy) - d.shape) / (d.shape * d.number_of_filaments - d.shape)
                 plt.plot(x, y)
                 plt.plot(x, yy, 'c.')
         plt.plot(x, y, linewidth=2)
-        #plt.legend(loc=0)
+        # plt.legend(loc=0)
         plt.show()
 
     def fit_data_diff():
@@ -401,11 +401,11 @@ if __name__ == '__main__':
         xx = (data.ln_x[:-1] + data.ln_x[1:]) / 2.0
         y = data.wp_cdf_x
         y = (differentiate(data.ln_x, y) - data.shape) / (data.shape * data.number_of_filaments - data.shape)
-        #y = f(3, 6)
+        # y = f(3, 6)
         mask = xx < -.3
         x = xx[mask]
         y = y[mask]
-        plsq = leastsq(residuals, p0, args=(y, x))  #, ftol=1.49012e-12, xtol=1.49012e-12, maxfev=10000)
+        plsq = leastsq(residuals, p0, args=(y, x))  # , ftol=1.49012e-12, xtol=1.49012e-12, maxfev=10000)
         yy = data.wp_gauss_x
         yy = (differentiate(data.ln_x, yy) - data.shape) / (data.shape * data.number_of_filaments - data.shape)
     #    np.savetxt('x.txt', data.x)
@@ -421,8 +421,8 @@ if __name__ == '__main__':
         plt.show()
 
 
-    #fit_data()
-    #plot_derivation()
+    # fit_data()
+    # plot_derivation()
     gen_data_all()
     fit_data_diff()
 

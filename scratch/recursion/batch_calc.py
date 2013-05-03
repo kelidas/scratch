@@ -67,7 +67,7 @@ if __name__ == '__main__':
     subdir_lst, path_lst = load_subdir_lists(s.d)
     for sub in subdir_lst:
         print sub
-        m = re.findall(r'n=(\d+)_m=(\d+.\d+)', sub)
+        m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
         n = mp.mpf(m[0][0])
         shape = mp.mpf(m[0][1])
         scale = MPF_ONE
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 #     mplog_vect = np.frompyfunc(mplog, 1, 1)
 #     for sub in subdir_lst:
 #         # print sub
-#         m = re.findall(r'n=(\d+)_m=(\d+.\d+)', sub)
+#         m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
 #         n.append(mp.mpf(m[0][0]))
 #         shape = mp.mpf(m[0][1])
 #         sn_1 = mplog_vect(np.load(os.path.join(s.d, sub, sub + '-dn.npy')))
@@ -119,7 +119,7 @@ if __name__ == '__main__':
 #     n = []
 #     for sub in subdir_lst:
 #         print sub
-#         m = re.findall(r'n=(\d+)_m=(\d+.\d+)', sub)
+#         m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
 #         n.append(mp.mpf(m[0][0]))
 #         shape = mp.mpf(m[0][1])
 #         gn_diff = np.load(os.path.join(s.d, sub, sub + '-gn_diff.npy'))
@@ -159,7 +159,7 @@ if __name__ == '__main__':
 #    subdir_lst, path_lst = load_subdir_lists(s.d)
 #    for sub in subdir_lst:
 #        print sub
-#        m = re.findall(r'n=(\d+)_m=(\d+.\d+)', sub)
+#        m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
 #        n = mp.mpf(m[0][0])
 #        shape = mp.mpf(m[0][1])
 #        scale = MPF_ONE
@@ -179,7 +179,7 @@ if __name__ == '__main__':
 #    subdir_lst, path_lst = load_subdir_lists(s.d)
 #    for sub in subdir_lst:
 #        print sub
-#        m = re.findall(r'n=(\d+)_m=(\d+.\d+)', sub)
+#        m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
 #        n = mp.mpf(m[0][0])
 #        shape = mp.mpf(m[0][1])
 #        scale = MPF_ONE
