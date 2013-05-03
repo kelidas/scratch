@@ -226,19 +226,19 @@ class WPPlot(BasePlot):
             if self.gn_on:
                 x = self.data.ln_x[i]
                 y = self.data.gn_wp[i]
-                axes.plot(x, y, 'k-')
+                axes.plot(x, y)
             if self.norm_on:
                 x = self.data.ln_x[i]
                 y = self.data.norm_wp[i]
-                axes.plot(x, y, 'b-')
+                axes.plot(x, y, 'k--')
             if self.weibl_on:
                 x = self.data.ln_x[i]
                 y = self.data.weibl_wp[i]
-                axes.plot(x, y, 'g-')
+                axes.plot(x, y, color='grey', linestyle='--')
             if self.weibr_on:
                 x = self.data.ln_x[i]
                 y = self.data.weibr_wp[i]
-                axes.plot(x, y, 'g-')
+                axes.plot(x, y, color='grey', linestyle='--')
         def form3(x, pos):
             mp.mp.dps = 1000
             return '%s %%' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))) * 100, 6)
@@ -278,11 +278,11 @@ class DiffPlot(BasePlot):
             if self.gn_on:
                 x = self.data.ln_x_diff[i]
                 y = self.data.gn_diff[i]
-                axes.plot(x, y, 'k-')
+                axes.plot(x, y)
             if self.norm_on:
                 x = self.data.ln_x_diff[i]
                 y = self.data.norm_diff[i]
-                axes.plot(x, y, 'b-')
+                axes.plot(x, y, 'k--')
         axes.set_xlabel('log(x)')
         axes.set_ylabel('diff(log(x),log(-log(1-cdf)))')
 
