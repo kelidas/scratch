@@ -2,10 +2,11 @@
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
     Constant, Directory, File, Str, Button, Int, List, Interface, implements, \
-    Either, Enum, String
+    Either, Enum, String, PythonValue, Any
 from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
-from traitsui.api import View, Item, Group, HGroup, OKButton, CodeEditor, \
-        VGroup, HSplit, EnumEditor, Handler, SetEditor, EnumEditor
+from traitsui.api import View, Item, Group, HGroup, OKButton, CodeEditor, UItem, \
+        VGroup, HSplit, EnumEditor, Handler, SetEditor, EnumEditor, InstanceEditor, \
+        HTMLEditor, ShellEditor, CheckListEditor, VFlow
 import subprocess
 import multiprocessing
 import os
@@ -32,10 +33,17 @@ import mpmath as mp
 from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
 from threading import Thread
+from scipy import stats
 
 # ===============================================================================
 # Data Viewer
 # ===============================================================================
+
+N_DIR_NAME = r'm=%05.1f_n=%04i'
+
+def decompile_n_dirname(n_dirname):
+    m = re.match(r'm=(?P<shape>\d+.\d+)_n=(?P<number>\d+)', n_dirname)
+    return m.groupdict()
 
 class DirHandler(Handler):
     m_dirs = List(Str)
@@ -62,6 +70,11 @@ class DirSelector(HasTraits):
     m_dir = Str()
     n_dir = Str()
 
+    res_lst_on = Bool(False)
+    res_lst = List(res_lst, editor=CheckListEditor(
+                           values=res_lst,
+                           cols=4))
+
     n_dir_enabled = Property(Bool)
     def _get_n_dir_enabled(self):
         if self.options_ == 0:
@@ -73,13 +86,17 @@ class DirSelector(HasTraits):
                                   'one shape':1,
                                   'all':2})
 
-
     traits_view = View(
                        Item('database_dir', id='dir_selector.database_dir'),
                        Item('m_dir', editor=EnumEditor(name='handler.m_dirs'), id='dir_selector.m_dir'),
                        Item('options', style='custom', id='dir_selector.options'),
                        Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='n_dir_enabled', id='dir_selector.n_dir'),
-                      handler=DirHandler,
+                       Item('res_lst_on'),
+                       Group(
+                       Item('res_lst@', enabled_when='res_lst_on', show_label=False),
+                       label='import data',
+                       show_border=True),
+                       handler=DirHandler,
                        id='dir_selector.main'
                        )
 
@@ -109,8 +126,11 @@ class RecursionData(HasTraits):
     gn_diff = List(Array)
     norm_diff = List(Array)
 
-    dn = List
-    sn = List
+    dn = List(Array)
+    sn = List(Array)
+    dk = List(Array)
+    sk = List(Array)
+
 
 class PlotHandler(Handler):
     n_dirs = List(Str)
@@ -126,14 +146,28 @@ class PlotHandler(Handler):
             for i in info.object.m_selected:
                 idx = np.where((np.array(info.object.m_dir_lst) == i) == True)
                 if list(idx) != []:
-                    n_dirs += list(np.array(info.object.n_dir_lst)[idx])
+                    n_dir = np.array(info.object.n_dir_lst)[idx]
+                    if info.object.n_filter_on and info.object.n_filter != 0:
+                        idx = np.where((np.array(n_dir) == N_DIR_NAME %
+                                        (float(decompile_n_dirname(n_dir[0])['shape']), info.object.n_filter)) == True)
+                        n_dirs += list(n_dir[idx])
+                    else:
+                        n_dirs += list(n_dir)
             self.n_dirs = n_dirs
+
+    def object_n_filter_on_changed(self, info):
+        self.object_m_selected_changed(info)
+    def object_n_filter_changed(self, info):
+        self.object_m_selected_changed(info)
 
 class PlotSelector(HasTraits):
     data = Instance(RecursionData)
 
     n_dir_lst = List(Str)
     m_dir_lst = List(Str)
+
+    n_filter_on = Bool(False)
+    n_filter = Int(auto_set=False, enter_set=True)
 
     load_options = Button
     def _load_options_fired(self):
@@ -167,6 +201,9 @@ class PlotSelector(HasTraits):
                                           can_move_all=True,
                                           left_column_title='Available shapes',
                                           right_column_title='Selected shapes'), id='plot_selector.m_selected'),
+                       HGroup(Item('n_filter_on', show_label=False),
+                              Item('n_filter', enabled_when='n_filter_on'),
+                              ),
                        Item('n_selected', show_label=False,
                             editor=SetEditor(
                                            name='handler.n_dirs',
@@ -217,6 +254,8 @@ class WPPlot(BasePlot):
     weibl_on = Bool(True)
     weibr_on = Bool(True)
 
+    tangent_on = Bool(False)
+
     def _draw_fired(self):
         axes = self.figure.axes[0]
         if self.clear_on:
@@ -239,6 +278,11 @@ class WPPlot(BasePlot):
                 x = self.data.ln_x[i]
                 y = self.data.weibr_wp[i]
                 axes.plot(x, y, color='grey', linestyle='--')
+            if self.tangent_on:
+                for d_i, d in enumerate(self.data.dk[i]):
+                    axes.plot(self.data.ln_x[i],
+                              self.data.shape[i] * (d_i + 1) * self.data.ln_x[i] + mp.log(d),
+                              'c--')
         def form3(x, pos):
             mp.mp.dps = 1000
             return '%s %%' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))) * 100, 6)
@@ -256,6 +300,7 @@ class WPPlot(BasePlot):
                              'norm_on',
                              'weibl_on',
                              'weibr_on',
+                             'tangent_on',
                              show_border=True,
                              label='data select',
                              ),
@@ -301,11 +346,12 @@ class DiffPlot(BasePlot):
                        )
 
 
-class LAPlot(BasePlot):
+class TangentParameterPlot(BasePlot):
 
-    name = 'Left assymptot params plot'
+    name = 'Tangent parameters plot'
 
-    var_sel = Enum('dn', 'sn')
+    var_sel = Enum(['dn', 'sn', 'dk', 'sk'])
+    plot_linreg = Bool(False)
 
     def _draw_fired(self):
         axes = self.figure.axes[0]
@@ -314,22 +360,51 @@ class LAPlot(BasePlot):
         axes.set_title(self.name)
         yn = []
         n = []
-        for i in self.plot_selector.plot_list:
-            yn.append(mp.log(getattr(self.data, self.var_sel)[i].reshape(1)[0]))
-            n.append(self.data.number_of_filaments[i])
-        axes.plot(n, yn, 'k-x')
-        axes.set_xlabel('number of filaments')
-        axes.set_ylabel('log(%s)' % self.var_sel)
+        if self.var_sel == 'dn' or self.var_sel == 'sn':
+            if self.plot_selector.n_filter_on:
+                for i in self.plot_selector.plot_list:
+                    yn.append(mp.log(getattr(self.data, self.var_sel)[i].reshape(1)[0]))
+                    n.append(self.data.shape[i])
+                axes.set_xlabel('shape')
+            else:
+                for i in self.plot_selector.plot_list:
+                    yn.append(mp.log(getattr(self.data, self.var_sel)[i].reshape(1)[0]))
+                    n.append(self.data.number_of_filaments[i])
+                axes.set_xlabel('number of filaments')
+            axes.set_ylabel('log(%s)' % self.var_sel)
+            n = np.array(n, dtype=object)
+            yn = np.array(yn, dtype=object)
+            axes.plot(n, yn, 'k-x')
+
+        if self.var_sel == 'dk' or self.var_sel == 'sk':
+            for i in self.plot_selector.plot_list:
+                yn = []
+                for j in getattr(self.data, self.var_sel)[i]:
+                    yn.append(mp.log(j))
+                n = np.arange(len(yn)) + 1
+                yn = np.array(yn, dtype=object)
+                axes.plot(n, yn, 'k-x')
+                axes.set_xlabel('k')
+                axes.set_ylabel('log(%s)' % self.var_sel)
+
+
+        if self.plot_linreg:
+            slope, intercept, r_value, p_value, std_err = stats.linregress(n, yn)
+            print 'slope =', slope, ', intercept =', intercept
+            print 'coefficient of determination =', r_value ** 2
+            axes.plot(n, slope * n + intercept, 'r--')
 
         self.figure.canvas.draw()
 
     traits_view = View(
                        'clear_on',
                        Group(
-                             Item('var_sel', style='custom', show_label=False),
+                             Item('var_sel', style='custom', show_label=False,
+                                   editor=EnumEditor(values=var_sel.values, cols=2)),
                              show_border=True,
                              label='data select',
                              ),
+                       Item('plot_linreg', tooltip='plot linear regression of the last curve only'),
                        Item('draw', show_label=False),
                        id='plot.main'
                        )
@@ -394,6 +469,7 @@ class LoadThread(Thread):
         if self.selector.options_ == 0:
             if self.selector.n_dir in self.data.n_dir_lst:
                 self.load_info_display(self.selector.m_dir + ', ' + self.selector.n_dir + ', yet loaded')
+                self.wants_abort = True
                 return
             self.load_info_display(self.selector.m_dir + ', ' + self.selector.n_dir)
             self.__load_n_data(self.selector.m_dir, self.selector.n_dir)
@@ -426,11 +502,10 @@ class LoadThread(Thread):
             self.load_info_display('Finished!')
 
     def __load_n_data(self, m_dirname, n_dirname):
-        m = re.match(r'm=(?P<shape>\d+.\d+)_n=(?P<number>\d+)', n_dirname)
-        m = m.groupdict()
+        m = decompile_n_dirname(n_dirname)
         self.data.shape.append(float(m['shape']))
         self.data.number_of_filaments.append(int(m['number']))
-        for res in res_lst:
+        for res in self.selector.res_lst:
             data = (np.load(os.path.join(self.selector.database_dir,
                                              m_dirname, n_dirname,
                                              n_dirname + '-%s.npy' % res)))
@@ -456,13 +531,13 @@ class ControlPanel(HasTraits):
     plot = EitherType(names=['wp plot',
                              'pdf plot',
                              'diff_plot',
-                             'left asympt. params plot',
+                             'tangent parameter plot',
                              'base',
                              ],
                       klasses=[WPPlot,
                                PDFPlot,
                                DiffPlot,
-                               LAPlot,
+                               TangentParameterPlot,
                                BasePlot,
                                ])
 
@@ -535,17 +610,21 @@ class MainWindow(HasTraits):
         # figure.add_axes([0.2, 0.04, 0.7, 0.8])
         return figure
 
+    # shell = Any()
+
     view = View(HSplit(
-                       Item('panel', style='custom', show_label=False,
-                            id='main_window.panel'),
+                       Item('panel@', show_label=False,
+                            width=0.4, id='main_window.panel'),
                        Item('figure', editor=MPLFigureEditor(), show_label=False,
-                            dock='tab', id='main_window.figure'),
+                            dock='tab', width=0.6, id='main_window.figure'),
                        id='main_window.hsplit',
                        ),
+                # Item('shell', editor=ShellEditor()),
                 title='Recursion Analyzer',
                 id='main_window.view',
                 resizable=True,
-                height=0.5, width=0.75,
+                height=0.7,
+                width=0.75,
                 buttons=[OKButton],
                 )
 

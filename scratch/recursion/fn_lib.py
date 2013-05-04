@@ -59,13 +59,17 @@ def dk_approx(k, scale, shape, gn_wp, ln_x):
     if isinstance(scale, mp.mpf) == False:
         scale = mp.mpf('%s' % scale)
     if isinstance(shape, mp.mpf) == False:
-        scale = mp.mpf('%s' % shape)
+        shape = mp.mpf('%s' % shape)
+    if isinstance(k, mp.mpf) == False:
+        k = mp.mpf('%s' % k)
     b_approx = 0
     c_approx = 100
-    arr_len = len(gn_wp)
-    for i in range(arr_len):
-        b = gn_wp[i] - shape * k / scale * ln_x[i]
-        y = shape * k / scale * ln_x + b
+
+    import time
+    bb = gn_wp - shape * k / scale * ln_x
+    ln_x = shape * k / scale * ln_x
+    for b in bb:
+        y = ln_x + b
         counter = np.sum(y < gn_wp)
         if counter < c_approx:
             c_approx = counter

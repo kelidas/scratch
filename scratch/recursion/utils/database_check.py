@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from recursion.database_prep import res_lst
+from scratch.recursion.database_prep import res_lst
 import numpy as np
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 import shutil
 import mpmath as mp
-from recursion.database_prep import DATABASE_DIR
+from scratch.recursion.database_prep import DATABASE_DIR
 
 class Selector(HasTraits):
 

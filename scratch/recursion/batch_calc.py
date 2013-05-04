@@ -52,31 +52,70 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from utils.database_check import Selector
     import scipy.stats as stats
-    s = Selector(d=os.path.join(DATABASE_DIR, 'm=020.0'))
+    s = Selector(d=os.path.join(DATABASE_DIR, 'm=003.0'))
     dir_name = s.d
     subdir_lst, path_lst = load_subdir_lists(s.d)
     subdir_lst.sort()
 
+
     # ===========================================================================
-    # Calculate dn, sn
+    # Calculate dk, sk
     # ===========================================================================
     from recursion_mp import dn_mp
     from mp_settings import MPF_ONE
     from utils.database_check import load_subdir_lists
     import mpmath as mp
-    subdir_lst, path_lst = load_subdir_lists(s.d)
+    from fn_lib import dk_approx
+
+
     for sub in subdir_lst:
         print sub
         m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
-        n = mp.mpf(m[0][0])
-        shape = mp.mpf(m[0][1])
+        n = mp.mpf(m[0][1])
+        shape = mp.mpf(m[0][0])
         scale = MPF_ONE
-        dn = dn_mp(scale, shape, n)
-        print os.path.join(s.d, sub, sub + '-dn.npy'), dn
-        sn_ = sn_mp(dn, scale, shape, n)
-        print os.path.join(s.d, sub, sub + '-sn.npy'), sn_
-        np.save(os.path.join(s.d, sub, sub + '-dn.npy'), dn)
-        np.save(os.path.join(s.d, sub, sub + '-sn.npy'), sn_)
+
+
+        gn_wp = np.load(os.path.join(s.d, sub, sub + '-gn_wp.npy'))
+        ln_x = np.load(os.path.join(s.d, sub, sub + '-ln_x.npy'))
+        dk = []
+        for k in range(1, int(m[0][1]) + 1):
+            dk.append(dk_approx(k, scale, shape, gn_wp, ln_x))
+
+        sk = []
+        for d in dk:
+            sk.append(MPF_ONE / d ** (MPF_ONE / (n * shape)))
+
+        dk = np.array(dk, dtype=object)
+        print os.path.join(s.d, sub, sub + '-dk.npy'), dk
+
+        sk = np.array(sk, dtype=object)
+        print os.path.join(s.d, sub, sub + '-sk.npy'), sk
+        np.save(os.path.join(s.d, sub, sub + '-dk.npy'), dk)
+        np.save(os.path.join(s.d, sub, sub + '-sk.npy'), sk)
+
+
+
+#     # ===========================================================================
+#     # Calculate dn, sn
+#     # ===========================================================================
+#     from recursion_mp import dn_mp
+#     from mp_settings import MPF_ONE
+#     from utils.database_check import load_subdir_lists
+#     import mpmath as mp
+#     subdir_lst, path_lst = load_subdir_lists(s.d)
+#     for sub in subdir_lst:
+#         print sub
+#         m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
+#         n = mp.mpf(m[0][1])
+#         shape = mp.mpf(m[0][0])
+#         scale = MPF_ONE
+#         dn = dn_mp(scale, shape, n)
+#         print os.path.join(s.d, sub, sub + '-dn.npy'), dn
+#         sn_ = sn_mp(dn, scale, shape, n)
+#         print os.path.join(s.d, sub, sub + '-sn.npy'), sn_
+#         np.save(os.path.join(s.d, sub, sub + '-dn.npy'), dn)
+#         np.save(os.path.join(s.d, sub, sub + '-sn.npy'), sn_)
 
 
 
@@ -93,13 +132,13 @@ if __name__ == '__main__':
 #     for sub in subdir_lst:
 #         # print sub
 #         m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
-#         n.append(mp.mpf(m[0][0]))
-#         shape = mp.mpf(m[0][1])
+#         n.append(mp.mpf(m[0][1]))
+#         shape = mp.mpf(m[0][0])
 #         sn_1 = mplog_vect(np.load(os.path.join(s.d, sub, sub + '-dn.npy')))
 #         sn.append(sn_1)
-#         # print int(m[0][0]), float(sn_1)
+#         # print int(m[0][1]), float(sn_1)
 #     slope, intercept, r_value, p_value, std_err = stats.linregress(np.array(n[30:], dtype=float), np.array(sn[30:], dtype=float))
-#     print m[0][1], slope, intercept
+#     print m[0][0], slope, intercept
 #     print r_value ** 2
 # #    from scipy.optimize import curve_fit
 # #    def func(x, a, b):
@@ -120,8 +159,8 @@ if __name__ == '__main__':
 #     for sub in subdir_lst:
 #         print sub
 #         m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
-#         n.append(mp.mpf(m[0][0]))
-#         shape = mp.mpf(m[0][1])
+#         n.append(mp.mpf(m[0][1]))
+#         shape = mp.mpf(m[0][0])
 #         gn_diff = np.load(os.path.join(s.d, sub, sub + '-gn_diff.npy'))
 #         ln_x_diff = np.load(os.path.join(s.d, sub, sub + '-ln_x_diff.npy'))
 #         r, l = [np.where(gn_diff <= horizontal_line)[0].min(), np.where(gn_diff > horizontal_line)[0].max()]
@@ -160,8 +199,8 @@ if __name__ == '__main__':
 #    for sub in subdir_lst:
 #        print sub
 #        m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
-#        n = mp.mpf(m[0][0])
-#        shape = mp.mpf(m[0][1])
+#        n = mp.mpf(m[0][1])
+#        shape = mp.mpf(m[0][0])
 #        scale = MPF_ONE
 #        dn = dn_mp(scale, shape, n)
 #        print os.path.join(s.d, sub, sub + '-dn.npy'), dn
@@ -180,8 +219,8 @@ if __name__ == '__main__':
 #    for sub in subdir_lst:
 #        print sub
 #        m = re.findall(r'm=(\d+.\d+)_n=(\d+)', sub)
-#        n = mp.mpf(m[0][0])
-#        shape = mp.mpf(m[0][1])
+#        n = mp.mpf(m[0][1])
+#        shape = mp.mpf(m[0][0])
 #        scale = MPF_ONE
 #        x=np.load(os.path.join(s.d, sub, sub + '-x.npy'))
 #        sn=np.load(os.path.join(s.d, sub, sub + '-sn.npy'))

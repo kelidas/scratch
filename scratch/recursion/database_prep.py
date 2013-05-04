@@ -21,6 +21,8 @@ if platform.system() == 'Linux':
 elif platform.system() == 'Windows':
     DATABASE_DIR = r'E:\Documents\postdoc\2013\rekurze\recursion_database'
 
+# TODO: code for precalculation of dk and sk
+
 res_lst = ['x',
            'ln_x',
            'gn_cdf',
@@ -36,7 +38,9 @@ res_lst = ['x',
            'sn',
            'dn',
            'weibl_wp',
-           'weibl_cdf']
+           'weibl_cdf',
+           'sk',
+           'dk']
 
 def send_email_smtp(sender, receiver, email):
     # Send the message via local SMTP server.
