@@ -52,7 +52,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from utils.database_check import Selector
     import scipy.stats as stats
-    s = Selector(d=os.path.join(DATABASE_DIR, 'm=003.0'))
+    s = Selector(d=os.path.join(DATABASE_DIR, 'm=005.0'))
     dir_name = s.d
     subdir_lst, path_lst = load_subdir_lists(s.d)
     subdir_lst.sort()

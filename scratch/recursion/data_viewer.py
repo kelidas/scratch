@@ -56,11 +56,24 @@ class DirHandler(Handler):
         info.object.m_dirs = self.m_dirs
 
     def object_m_dir_changed(self, info):
-        self.n_dirs = os.listdir(os.path.join(info.object.database_dir, info.object.m_dir))
-        # As default value, use the first value in the list:
-        self.n_dirs.sort()
+        n_dirs_lst = os.listdir(os.path.join(info.object.database_dir, info.object.m_dir))
+        n_dirs_lst.sort()
+        n_dirs = []
+        if info.object.n_filter_on and info.object.n_filter != 0:
+            idx = np.where((np.array(n_dirs_lst) == N_DIR_NAME %
+                            (float(decompile_n_dirname(n_dirs_lst[0])['shape']),
+                              info.object.n_filter)) == True)
+            n_dirs = [n_dirs_lst[idx[0]]]
+        else:
+            n_dirs += list(n_dirs_lst)
+        self.n_dirs = n_dirs
         info.object.n_dir = self.n_dirs[0]
         info.object.n_dirs = self.n_dirs
+
+    def object_n_filter_on_changed(self, info):
+        self.object_m_dir_changed(info)
+    def object_n_filter_changed(self, info):
+        self.object_m_dir_changed(info)
 
 class DirSelector(HasTraits):
 
@@ -82,14 +95,27 @@ class DirSelector(HasTraits):
         else:
             return False
 
+    m_dir_enabled = Property(Bool)
+    def _get_m_dir_enabled(self):
+        if self.options_ == 2:
+            return False
+        else:
+            return True
+
+    n_filter_on = Bool(False)
+    n_filter = Int(auto_set=False, enter_set=True)
+
     options = Trait('one number', {'one number':0,
                                   'one shape':1,
                                   'all':2})
 
     traits_view = View(
                        Item('database_dir', id='dir_selector.database_dir'),
-                       Item('m_dir', editor=EnumEditor(name='handler.m_dirs'), id='dir_selector.m_dir'),
+                       Item('m_dir', editor=EnumEditor(name='handler.m_dirs'), enabled_when='m_dir_enabled', id='dir_selector.m_dir'),
                        Item('options', style='custom', id='dir_selector.options'),
+                       HGroup(
+                             Item('n_filter_on', show_label=False),
+                             Item('n_filter', enabled_when='n_filter_on')),
                        Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='n_dir_enabled', id='dir_selector.n_dir'),
                        Item('res_lst_on'),
                        Group(
@@ -377,6 +403,7 @@ class TangentParameterPlot(BasePlot):
             axes.plot(n, yn, 'k-x')
 
         if self.var_sel == 'dk' or self.var_sel == 'sk':
+            axes.set_title(self.name + ' - approximation')
             for i in self.plot_selector.plot_list:
                 yn = []
                 for j in getattr(self.data, self.var_sel)[i]:
@@ -487,11 +514,12 @@ class LoadThread(Thread):
                     self.data.n_dir_lst.append(d)
             self.wants_abort = True
             self.load_info_display('Finished!')
-        else:
+        elif  self.selector.options_ == 2:
             for m in self.selector.m_dirs:
-                if self.wants_abort == False:
-                    self.selector.m_dir = m
-                    for d in self.selector.n_dirs:
+                self.selector.m_dir = m
+                time.sleep(0.5)  # wait for change of n_dirs
+                for d in self.selector.n_dirs:
+                    if self.wants_abort == False:
                         if d in self.data.n_dir_lst:
                             self.load_info_display(m + ', ' + d + ', yet loaded')
                             continue
