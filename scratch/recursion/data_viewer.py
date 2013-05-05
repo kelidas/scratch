@@ -6,7 +6,7 @@ from traits.api import HasTraits, Float, Property, cached_property, \
 from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
 from traitsui.api import View, Item, Group, HGroup, OKButton, CodeEditor, UItem, \
         VGroup, HSplit, EnumEditor, Handler, SetEditor, EnumEditor, InstanceEditor, \
-        HTMLEditor, ShellEditor, CheckListEditor, VFlow
+        HTMLEditor, ShellEditor, CheckListEditor, VFlow, Label
 import subprocess
 import multiprocessing
 import os
@@ -118,11 +118,16 @@ class DirSelector(HasTraits):
                              Item('n_filter_on', show_label=False),
                              Item('n_filter', enabled_when='n_filter_on')),
                        Item('n_dir', editor=EnumEditor(name='handler.n_dirs'), enabled_when='n_dir_enabled', id='dir_selector.n_dir'),
-                       Item('res_lst_on'),
                        Group(
-                       Item('res_lst@', enabled_when='res_lst_on', show_label=False),
-                       label='import data',
-                       show_border=True),
+                             HGroup(
+                                    Item('res_lst_on', show_label=False),
+                                    Label('  Select data to be import.'),
+                                    ),
+                             '_',
+                             Item('res_lst@', enabled_when='res_lst_on', show_label=False),
+                             label='import data',
+                             show_border=True
+                             ),
                        handler=DirHandler,
                        id='dir_selector.main'
                        )
