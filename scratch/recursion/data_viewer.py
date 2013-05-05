@@ -609,7 +609,8 @@ class PythonShell(HasTraits):
     shell = Dict()
     
     traits_view=View(
-                     Item('shell', editor=ShellEditor()),
+                     Item('shell', editor=ShellEditor(), show_label=False),
+                     id='python_shell.view'
                      )
 
 
