@@ -2,7 +2,7 @@
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
     Constant, Directory, File, Str, Button, Int, List, Interface, implements, \
-    Either, Enum, String, PythonValue, Any
+    Either, Enum, String, PythonValue, Any, Dict
 from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
 from traitsui.api import View, Item, Group, HGroup, OKButton, CodeEditor, UItem, \
         VGroup, HSplit, EnumEditor, Handler, SetEditor, EnumEditor, InstanceEditor, \
@@ -34,7 +34,7 @@ from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
 from threading import Thread
 from scipy import stats
-from fn_lib import fit_data_leastsq, f_gev, f_gumb
+from fn_lib import fit_data_leastsq, f_gev, f_gumb, f_weib
 
 # ===============================================================================
 # Data Viewer
@@ -369,7 +369,9 @@ class DiffPlot(BasePlot):
     xlim_right = Float(0.0)
 
     fit_funcion = Trait('gev', {'gev':f_gev,
-                                'gumbel':f_gumb})
+                                'gumbel':f_gumb,
+                                'weibull':f_weib}
+                                )
 
     def _draw_fired(self):
         axes = self.figure.axes[0]
@@ -602,12 +604,22 @@ class LoadThread(Thread):
             data = []
         self.data.m_dir_lst.append('m=%05.1f' % float(m['shape']))
 
+
+class PythonShell(HasTraits):
+    shell = Dict()
+    
+    traits_view=View(
+                     Item('shell', editor=ShellEditor()),
+                     )
+
+
 class ControlPanel(HasTraits):
 
     load_info = String()
 
     data = Instance(RecursionData, ())
     selector = Instance(DirSelector, ())
+    python_shell = Instance(PythonShell, ())
 
     plot_selector = Instance(PlotSelector)
     def _plot_selector_default(self):
@@ -680,6 +692,12 @@ class ControlPanel(HasTraits):
                              dock='tab',
                              id='control_panel.plot',
                        ),
+                       Group(
+                             Item('python_shell@', show_label=False),
+                             label='shell',
+                             dock='tab',
+                             id='control_panel.shell',
+                             ),
                        id='control_panel.main'
                        )
 
@@ -699,8 +717,6 @@ class MainWindow(HasTraits):
         # figure.add_axes([0.2, 0.04, 0.7, 0.8])
         return figure
 
-    # shell = Any()
-
     view = View(HSplit(
                        Item('panel@', show_label=False,
                             width=0.4, id='main_window.panel'),
@@ -708,7 +724,6 @@ class MainWindow(HasTraits):
                             dock='tab', width=0.6, id='main_window.figure'),
                        id='main_window.hsplit',
                        ),
-                # Item('shell', editor=ShellEditor()),
                 title='Recursion Analyzer',
                 id='main_window.view',
                 resizable=True,
@@ -720,41 +735,42 @@ class MainWindow(HasTraits):
 
 
 app = MainWindow()
+
 app.configure_traits()
 
 
 
-exit()
-
-
-
-if __name__ == '__main__':
-
-    def gen_data_all():
-        all_dirs = False
-        if all_dirs:
-            dirname = os.path.dirname(data.inputfile)[:-6]
-            dirs = ['m=3.00', 'm=4.00', 'm=5.00', 'm=6.00', 'm=7.00', 'm=8.00',
-                    'm=9.00', 'm=10.00', 'm=15.00']
-        else:
-            dirname = os.path.dirname(data.inputfile)
-            dirs = ['.']
-        for dirn in dirs:
-            files = [v for v in os.listdir(os.path.join(dirname, dirn)) if os.path.splitext(v)[1] == ".txt"]
-            for f in files:
-                d = Data(inputfile=os.path.join(dirname, dirn, f))
-                x = (d.ln_x[:-1] + d.ln_x[1:]) / 2.0
-                y = d.wp_cdf_x
-                # y = tan_log(d.x, d.number_of_filaments, d.scale, d.shape, 1)
-                # y = (differentiate(d.ln_x, y))
-                y = (differentiate(d.ln_x, y) - d.shape) / (d.shape * d.number_of_filaments - d.shape)
-                yy = d.wp_gauss_x
-                yy = (differentiate(d.ln_x, yy) - d.shape) / (d.shape * d.number_of_filaments - d.shape)
-                plt.plot(x, y)
-                plt.plot(x, yy, 'c.')
-        plt.plot(x, y, linewidth=2)
-        # plt.legend(loc=0)
-        plt.show()
+# exit()
+#
+#
+#
+# if __name__ == '__main__':
+#
+#     def gen_data_all():
+#         all_dirs = False
+#         if all_dirs:
+#             dirname = os.path.dirname(data.inputfile)[:-6]
+#             dirs = ['m=3.00', 'm=4.00', 'm=5.00', 'm=6.00', 'm=7.00', 'm=8.00',
+#                     'm=9.00', 'm=10.00', 'm=15.00']
+#         else:
+#             dirname = os.path.dirname(data.inputfile)
+#             dirs = ['.']
+#         for dirn in dirs:
+#             files = [v for v in os.listdir(os.path.join(dirname, dirn)) if os.path.splitext(v)[1] == ".txt"]
+#             for f in files:
+#                 d = Data(inputfile=os.path.join(dirname, dirn, f))
+#                 x = (d.ln_x[:-1] + d.ln_x[1:]) / 2.0
+#                 y = d.wp_cdf_x
+#                 # y = tan_log(d.x, d.number_of_filaments, d.scale, d.shape, 1)
+#                 # y = (differentiate(d.ln_x, y))
+#                 y = (differentiate(d.ln_x, y) - d.shape) / (d.shape * d.number_of_filaments - d.shape)
+#                 yy = d.wp_gauss_x
+#                 yy = (differentiate(d.ln_x, yy) - d.shape) / (d.shape * d.number_of_filaments - d.shape)
+#                 plt.plot(x, y)
+#                 plt.plot(x, yy, 'c.')
+#         plt.plot(x, y, linewidth=2)
+#         # plt.legend(loc=0)
+#         plt.show()
 
 
 

@@ -12,7 +12,7 @@ from mp_settings import MPF_ONE, MPF_TWO
 
 def weib_cdf(x, shape, scale):
     '''
-    Cumulative distribution function of Weibull distribution with two 
+    Cumulative distribution function of Weibull distribution with two
     parameters (shape and scale).
     '''
     return MPF_ONE - mp.exp(-(x / scale) ** shape)
@@ -21,7 +21,7 @@ weib_cdf_vect = np.frompyfunc(weib_cdf, 3, 1)
 
 def norm_cdf(x, mean, std):
     '''
-    Cumulative distribution function of Normal distribution with two 
+    Cumulative distribution function of Normal distribution with two
     parameters (mean and standard deviation).
     '''
     return (MPF_ONE + mp.erf((x - mean) / mp.sqrt(MPF_TWO * std ** 2))) / MPF_TWO
@@ -31,7 +31,7 @@ norm_cdf_vect = np.frompyfunc(norm_cdf, 3, 1)
 def weibl_cdf(x, sn, shape, n):
     '''
     Return values of the left asymptote for cumulative distribution function of
-    bundle strength. 
+    bundle strength.
     '''
     return (x / sn) ** (shape * n)
 
@@ -81,15 +81,10 @@ def dk_approx(k, scale, shape, gn_wp, ln_x):
             counter = 0
     return mp.exp(b_approx)
 
-def f_weib(x, a, b):
+def f_weib(x, a, b, c):
     '''CDF of the Weibull distribution reflected across the axis y.
     '''
-    # TODO: change for mpmath
-    z = (x / a) ** b
-    ret = np.piecewise(z,
-            [z < 0, z <= 10 ** (-12), z > 10 ** (-12)],
-             [lambda z: 0, lambda z: z - 0.5 * z * z + 1 / 6. * z ** 3 - 1 / 24. * z ** 4, lambda z: 1. - np.exp(-z) ])
-    return ret[::-1]
+    return 1 - np.exp(-(-(x - c) / a) ** b)
 
 def f_gumb(x, a, b):
     '''CDF of the Gumbel distribution reflected across the axis y.
@@ -102,7 +97,7 @@ def f_gev(x, a, b, c):
     return np.exp(-(1 + a * ((-x - b) / c)) ** (-1.0 / a))
 
 def fit_data_leastsq(f, x, y, p0=None):
-    '''Fitting data using scipy leastsq function. 
+    '''Fitting data using scipy leastsq function.
     '''
     if p0 == None:
         n_arg = len(inspect.getargspec(f).args)
