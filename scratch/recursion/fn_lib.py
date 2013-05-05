@@ -109,12 +109,12 @@ def fit_data_leastsq(f, x, y, p0=None):
         p0 = np.ones(n_arg - 1)
 
     def residuals(p, y, x):
-        err = y - f_gev(x, *p)
+        err = y - f(x, *p)
         return err
 
     plsq = leastsq(residuals, p0, args=(y, x))
     print 'plsq', plsq
-    return f_gev(x, *plsq[0])
+    return f(x, *plsq[0])
 
 
 
