@@ -9,6 +9,7 @@ if platform.system() == 'Linux':
 elif platform.system() == 'Windows':
     sysclock = time.clock
 from mp_settings import MPF_ONE, MPF_TWO
+from scipy import stats
 
 def weib_cdf(x, shape, scale):
     '''
@@ -84,7 +85,9 @@ def dk_approx(k, scale, shape, gn_wp, ln_x):
 def f_weib(x, a, b, c):
     '''CDF of the Weibull distribution reflected across the axis y.
     '''
-    return 1 - np.exp(-(-(x - c) / a) ** b)
+    rv = stats.weibull_min(c, loc=a, scale=b)
+    return rv.cdf(-x)
+    # return 1 - np.exp(-(-(x - c) / a) ** b)
 
 def f_gumb(x, a, b):
     '''CDF of the Gumbel distribution reflected across the axis y.
@@ -94,7 +97,51 @@ def f_gumb(x, a, b):
 def f_gev(x, a, b, c):
     '''CDF of the Generalized extreme value distribution reflected across the axis y.
     '''
-    return np.exp(-(1 + a * ((-x - b) / c)) ** (-1.0 / a))
+    rv = stats.genextreme(c, loc=a, scale=b)
+    return rv.cdf(-x)
+    # return np.exp(-(1 + a * ((-x - b) / c)) ** (-1.0 / a))
+
+def f_pareto(x, a, b, c):
+    '''CDF of the Generalized extreme value distribution reflected across the axis y.
+    '''
+    rv = stats.pareto(c, loc=a, scale=b)
+    return rv.cdf(-x)
+
+def f_norm(x, a, b):
+    '''CDF of the Normal distribution reflected across the axis y.
+    '''
+    rv = stats.norm(a, b)
+    return rv.cdf(-x)
+
+def f_lognorm(x, a, b, c):
+    '''CDF of the Lognormal distribution reflected across the axis y.
+    '''
+    rv = stats.lognorm(c, loc=a, scale=b)
+    return rv.cdf(-x)
+
+def f_lomax(x, a, b, c):
+    '''CDF of the Lomax distribution reflected across the axis y.
+    '''
+    rv = stats.lomax(c, loc=a, scale=b)
+    return rv.cdf(-x)
+
+def f_powlognorm(x, a, b, c, d):
+    '''CDF of the Power lognormal distribution reflected across the axis y.
+    '''
+    rv = stats.powerlognorm(c, d, loc=a, scale=b)
+    return rv.cdf(-x)
+
+def f_pownorm(x, a, b, c):
+    '''CDF of the Power normal distribution reflected across the axis y.
+    '''
+    rv = stats.powernorm(c, loc=a, scale=b)
+    return rv.cdf(-x)
+
+def f_fatiguelife(x, a, b, c):
+    '''CDF of the fatiguelife distribution reflected across the axis y.
+    '''
+    rv = stats.fatiguelife (c, loc=a, scale=b)
+    return rv.cdf(-x)
 
 def fit_data_leastsq(f, x, y, p0=None):
     '''Fitting data using scipy leastsq function.

@@ -34,7 +34,8 @@ from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
 from threading import Thread
 from scipy import stats
-from fn_lib import fit_data_leastsq, f_gev, f_gumb, f_weib
+from fn_lib import fit_data_leastsq, f_gev, f_gumb, f_weib, f_norm, f_pareto, \
+                f_lognorm, f_lomax, f_powlognorm, f_pownorm, f_fatiguelife
 
 # ===============================================================================
 # Data Viewer
@@ -370,7 +371,14 @@ class DiffPlot(BasePlot):
 
     fit_funcion = Trait('gev', {'gev':f_gev,
                                 'gumbel':f_gumb,
-                                'weibull':f_weib}
+                                'weibull':f_weib,
+                                'normal':f_norm,
+                                'pareto':f_pareto,
+                                'lognorm':f_lognorm,
+                                'lomax':f_lomax,
+                                'power lognormal':f_powlognorm,
+                                'power normal':f_pownorm,
+                                'reciprocal':f_fatiguelife}
                                 )
 
     def _draw_fired(self):
