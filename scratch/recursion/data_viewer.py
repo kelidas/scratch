@@ -609,7 +609,7 @@ class PythonShell(HasTraits):
     shell = Dict()
     
     traits_view=View(
-                     Item('shell', editor=ShellEditor(), show_label=False),
+                     Item('shell', editor=ShellEditor(), show_label=False, id='python_shell.shell'),
                      id='python_shell.view'
                      )
 
@@ -722,7 +722,7 @@ class MainWindow(HasTraits):
                        Item('panel@', show_label=False,
                             width=0.4, id='main_window.panel'),
                        Item('figure', editor=MPLFigureEditor(), show_label=False,
-                            dock='tab', width=0.6, id='main_window.figure'),
+                            width=0.6, dock='tab', id='main_window.figure'),
                        id='main_window.hsplit',
                        ),
                 title='Recursion Analyzer',
@@ -730,7 +730,7 @@ class MainWindow(HasTraits):
                 resizable=True,
                 height=0.7,
                 width=0.75,
-                buttons=[OKButton],
+                # buttons=[OKButton],
                 )
 
 
