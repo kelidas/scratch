@@ -1,6 +1,8 @@
 import mpmath as mp
 import numpy as np
 import platform
+from scipy.optimize import leastsq
+import inspect
 import time
 if platform.system() == 'Linux':
     sysclock = time.time
@@ -79,7 +81,40 @@ def dk_approx(k, scale, shape, gn_wp, ln_x):
             counter = 0
     return mp.exp(b_approx)
 
+def f_weib(x, a, b):
+    '''CDF of the Weibull distribution reflected across the axis y.
+    '''
+    # TODO: change for mpmath
+    z = (x / a) ** b
+    ret = np.piecewise(z,
+            [z < 0, z <= 10 ** (-12), z > 10 ** (-12)],
+             [lambda z: 0, lambda z: z - 0.5 * z * z + 1 / 6. * z ** 3 - 1 / 24. * z ** 4, lambda z: 1. - np.exp(-z) ])
+    return ret[::-1]
 
+def f_gumb(x, a, b):
+    '''CDF of the Gumbel distribution reflected across the axis y.
+    '''
+    return np.exp(-np.exp(-(-x - a) / b))
+
+def f_gev(x, a, b, c):
+    '''CDF of the Generalized extreme value distribution reflected across the axis y.
+    '''
+    return np.exp(-(1 + a * ((-x - b) / c)) ** (-1.0 / a))
+
+def fit_data_leastsq(f, x, y, p0=None):
+    '''Fitting data using scipy leastsq function. 
+    '''
+    if p0 == None:
+        n_arg = len(inspect.getargspec(f).args)
+        p0 = np.ones(n_arg - 1)
+
+    def residuals(p, y, x):
+        err = y - f_gev(x, *p)
+        return err
+
+    plsq = leastsq(residuals, p0, args=(y, x))
+    print 'plsq', plsq
+    return f_gev(x, *plsq[0])
 
 
 

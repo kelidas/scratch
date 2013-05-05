@@ -34,6 +34,7 @@ from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
 from threading import Thread
 from scipy import stats
+from fn_lib import fit_data_leastsq, f_gev
 
 # ===============================================================================
 # Data Viewer
@@ -223,7 +224,7 @@ class PlotSelector(HasTraits):
                        Item('m_selected', show_label=False,
                             editor=SetEditor(
                                           name='handler.m_dirs',
-                                          # ordered=True,
+                                          ordered=True,
                                           can_move_all=True,
                                           left_column_title='Available shapes',
                                           right_column_title='Selected shapes'), id='plot_selector.m_selected'),
@@ -233,7 +234,7 @@ class PlotSelector(HasTraits):
                        Item('n_selected', show_label=False,
                             editor=SetEditor(
                                            name='handler.n_dirs',
-                                           # ordered=True,
+                                           ordered=True,
                                            can_move_all=True,
                                            left_column_title='Available numbers',
                                            right_column_title='Selected numbers'), id='plot_selector.n_selected'),
@@ -316,6 +317,8 @@ class WPPlot(BasePlot):
         axes.yaxis.set_major_formatter(FuncFormatter(formatter))
         axes.set_xlabel('log(x)')
         axes.set_ylabel('probability [log(-log(1-cdf))]')
+        axes_lim = axes.get_ylim()
+        axes.set_ylim(axes_lim[0], 10)
 
         self.figure.canvas.draw()
 
@@ -340,6 +343,11 @@ class DiffPlot(BasePlot):
     gn_on = Bool(True)
     norm_on = Bool(True)
 
+    fit_data_on = Bool(False)
+    xlim_on = Bool(False)
+    xlim_left = Float(-3.0)
+    xlim_right = Float(0.0)
+
     def _draw_fired(self):
         axes = self.figure.axes[0]
         if self.clear_on:
@@ -350,12 +358,23 @@ class DiffPlot(BasePlot):
                 x = self.data.ln_x_diff[i]
                 y = self.data.gn_diff[i]
                 axes.plot(x, y)
+                if self.fit_data_on:
+                    x = x.astype(float)
+                    y = y.astype(float)
+                    if self.xlim_on:
+                        mask = np.logical_and(x >= self.xlim_left,
+                                              x <= self.xlim_right)
+                        x = x[mask]
+                        y = y[mask]
+                    y_fit = fit_data_leastsq(f_gev, x, y, p0=None)
+                    axes.plot(x, y_fit, 'r-')
             if self.norm_on:
                 x = self.data.ln_x_diff[i]
                 y = self.data.norm_diff[i]
                 axes.plot(x, y, 'k--')
         axes.set_xlabel('log(x)')
         axes.set_ylabel('diff(log(x),log(-log(1-cdf)))')
+        axes.set_ylim(-0.1, 1.1)
 
         self.figure.canvas.draw()
 
@@ -367,6 +386,15 @@ class DiffPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
+                       Group(
+                             'fit_data_on',
+                           HGroup(
+                                Item('xlim_on', enabled_when='fit_data_on'),
+                                Item('xlim_left', enabled_when='xlim_on'),
+                                Item('xlim_right', enabled_when='xlim_on'),
+                               ),
+                             label='fit data lsq',
+                             show_border=True),
                        Item('draw', show_label=False),
                        id='plot.main'
                        )
