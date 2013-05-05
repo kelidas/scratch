@@ -34,7 +34,7 @@ from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
 from threading import Thread
 from scipy import stats
-from fn_lib import fit_data_leastsq, f_gev
+from fn_lib import fit_data_leastsq, f_gev, f_gumb
 
 # ===============================================================================
 # Data Viewer
@@ -258,6 +258,15 @@ class BasePlot(HasTraits):
 
     draw = Button()
 
+    delete_last_one = Button('Delete last line in the plot')
+    def _delete_last_one_fired(self):
+        axes = self.figure.axes[0]
+        if len(axes.lines) != 0:
+            axes.lines.pop(-1)
+            self.figure.canvas.draw()
+        else:
+            print 'There are no lines in the figure!'
+
     def _draw_fired(self):
         axes = self.figure.axes[0]
         if self.clear_on:
@@ -269,7 +278,10 @@ class BasePlot(HasTraits):
 
     traits_view = View(
                        'clear_on',
-                       Item('draw', show_label=False),
+                       HGroup(
+                              Item('draw', show_label=False, springy=True),
+                              Item('delete_last_one', show_label=False, springy=True),
+                       ),
                        id='plot.main'
                        )
 
@@ -333,7 +345,10 @@ class WPPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
-                       Item('draw', show_label=False),
+                       HGroup(
+                              Item('draw', show_label=False, springy=True),
+                              Item('delete_last_one', show_label=False, springy=True),
+                       ),
                        id='plot.main'
                        )
 
@@ -347,6 +362,9 @@ class DiffPlot(BasePlot):
     xlim_on = Bool(False)
     xlim_left = Float(-3.0)
     xlim_right = Float(0.0)
+
+    fit_funcion = Trait('gev', {'gev':f_gev,
+                                'gumbel':f_gumb})
 
     def _draw_fired(self):
         axes = self.figure.axes[0]
@@ -366,7 +384,7 @@ class DiffPlot(BasePlot):
                                               x <= self.xlim_right)
                         x = x[mask]
                         y = y[mask]
-                    y_fit = fit_data_leastsq(f_gev, x, y, p0=None)
+                    y_fit = fit_data_leastsq(self.fit_funcion_, x, y, p0=None)
                     axes.plot(x, y_fit, 'r-')
             if self.norm_on:
                 x = self.data.ln_x_diff[i]
@@ -388,6 +406,7 @@ class DiffPlot(BasePlot):
                              ),
                        Group(
                              'fit_data_on',
+                             Item('fit_funcion', enabled_when='fit_data_on'),
                            HGroup(
                                 Item('xlim_on', enabled_when='fit_data_on'),
                                 Item('xlim_left', enabled_when='xlim_on'),
@@ -395,7 +414,10 @@ class DiffPlot(BasePlot):
                                ),
                              label='fit data lsq',
                              show_border=True),
-                       Item('draw', show_label=False),
+                       HGroup(
+                              Item('draw', show_label=False, springy=True),
+                              Item('delete_last_one', show_label=False, springy=True),
+                       ),
                        id='plot.main'
                        )
 
@@ -460,7 +482,10 @@ class TangentParameterPlot(BasePlot):
                              label='data select',
                              ),
                        Item('plot_linreg', tooltip='plot linear regression of the last curve only'),
-                       Item('draw', show_label=False),
+                       HGroup(
+                              Item('draw', show_label=False, springy=True),
+                              Item('delete_last_one', show_label=False, springy=True),
+                       ),
                        id='plot.main'
                        )
 
@@ -511,7 +536,10 @@ class PDFPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
-                       Item('draw', show_label=False),
+                       HGroup(
+                              Item('draw', show_label=False, springy=True),
+                              Item('delete_last_one', show_label=False, springy=True),
+                       ),
                        id='plot.main'
                        )
 
