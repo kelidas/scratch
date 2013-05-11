@@ -92,7 +92,9 @@ def f_weib(x, a, b, c):
 def f_gumb(x, a, b):
     '''CDF of the Gumbel distribution reflected across the axis y.
     '''
-    return np.exp(-np.exp(-(-x - a) / b))
+    rv = stats.gumbel_r(loc=a, scale=b)
+    return rv.cdf(-x)
+    # return np.exp(-np.exp(-(-x - a) / b))
 
 def f_gev(x, a, b, c):
     '''CDF of the Generalized extreme value distribution reflected across the axis y.
@@ -140,8 +142,26 @@ def f_pownorm(x, a, b, c):
 def f_fatiguelife(x, a, b, c):
     '''CDF of the fatiguelife distribution reflected across the axis y.
     '''
-    rv = stats.fatiguelife (c, loc=a, scale=b)
+    rv = stats.fatiguelife(c, loc=a, scale=b)
     return rv.cdf(-x)
+
+def f_beta(x, a, b, c, d):
+    '''CDF of the Beta distribution reflected across the axis y.
+    '''
+    rv = stats.beta(c, d, loc=a, scale=b)
+    return rv.cdf(-x)
+
+def f_test(x, a, b, c):
+    '''CDF of the test distribution reflected across the axis y.
+    '''
+    rv = stats.chi2(c, loc=a, scale=b)
+    return rv.cdf(-x)
+
+def f_test_wp(x, a, b):
+    '''CDF in WP of the test distribution reflected across the axis y.
+    '''
+    rv = stats.gumbel_r(loc=a, scale=b)
+    return np.log1p(np.log1p(-rv.cdf(x)) - 1)
 
 def fit_data_leastsq(f, x, y, p0=None):
     '''Fitting data using scipy leastsq function.
