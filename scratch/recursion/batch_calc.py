@@ -52,7 +52,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from utils.database_check import Selector
     import scipy.stats as stats
-    s = Selector(d=os.path.join(DATABASE_DIR, 'm=005.0'))
+    s = Selector(d=os.path.join(DATABASE_DIR, 'm=003.0'))
     dir_name = s.d
     subdir_lst, path_lst = load_subdir_lists(s.d)
     subdir_lst.sort()
@@ -79,12 +79,15 @@ if __name__ == '__main__':
         gn_wp = np.load(os.path.join(s.d, sub, sub + '-gn_wp.npy'))
         ln_x = np.load(os.path.join(s.d, sub, sub + '-ln_x.npy'))
         dk = []
-        for k in range(1, int(m[0][1]) + 1):
-            dk.append(dk_approx(k, scale, shape, gn_wp, ln_x))
-
         sk = []
-        for d in dk:
-            sk.append(MPF_ONE / d ** (MPF_ONE / (n * shape)))
+        for k in range(1, int(m[0][1]) + 1):
+            d = dk_approx(k, scale, shape, gn_wp, ln_x)
+            dk.append(d)
+            sk.append(MPF_ONE / d ** (MPF_ONE / (k * shape)))
+
+#         sk = []
+#         for d in dk:
+#             sk.append(MPF_ONE / d ** (MPF_ONE / (n * shape)))
 
         dk = np.array(dk, dtype=object)
         print os.path.join(s.d, sub, sub + '-dk.npy'), dk
