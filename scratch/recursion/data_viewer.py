@@ -328,7 +328,8 @@ class WPPlot(BasePlot):
                                               x <= self.xlim_right)
                         x = x[mask]
                         y = y[mask]
-                    y_fit = fit_data_leastsq(self.fit_funcion_, x, y, p0=None)
+                    y_fit, plsq = fit_data_leastsq(self.fit_funcion_, x, y, p0=None)
+                    print 'm =', self.data.shape[i], 'n =', self.data.number_of_filaments[i], plsq
                     axes.plot(x, y_fit, 'r-')
             if self.norm_on:
                 x = self.data.ln_x[i]
@@ -432,7 +433,8 @@ class DiffPlot(BasePlot):
                                               x <= self.xlim_right)
                         x = x[mask]
                         y = y[mask]
-                    y_fit = fit_data_leastsq(self.fit_funcion_, x, y, p0=None)
+                    y_fit, plsq = fit_data_leastsq(self.fit_funcion_, x, y, p0=None)
+                    print 'm =', self.data.shape[i], ', n =', self.data.number_of_filaments[i], plsq
                     axes.plot(x, y_fit, 'r-')
                 if self.p_lim_on:
                     idx = np.where(self.data.gn_cdf[i] <= self.p_lim)[0]
@@ -646,7 +648,7 @@ class LoadThread(Thread):
         elif  self.selector.options_ == 2:
             for m in self.selector.m_dirs:
                 self.selector.m_dir = m
-                time.sleep(0.5)  # wait for change of n_dirs
+                time.sleep(1)  # wait for change of n_dirs
                 for d in self.selector.n_dirs:
                     if self.wants_abort == False:
                         if d in self.data.n_dir_lst:

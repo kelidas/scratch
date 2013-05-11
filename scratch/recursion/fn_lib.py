@@ -175,8 +175,7 @@ def fit_data_leastsq(f, x, y, p0=None):
         return err
 
     plsq = leastsq(residuals, p0, args=(y, x))
-    print 'plsq', plsq
-    return f(x, *plsq[0])
+    return f(x, *plsq[0]), plsq
 
 
 
