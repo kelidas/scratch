@@ -13,6 +13,8 @@ import shutil
 import mpmath as mp
 from scratch.recursion.database_prep import DATABASE_DIR
 
+mp.mp.dps = 1000
+
 class Selector(HasTraits):
 
     d = Directory(auto_set=False)
@@ -70,8 +72,79 @@ def loadplot_data(part_name):
     return mask
 
 if __name__ == '__main__':
-    s = Selector(d=os.path.join(DATABASE_DIR, 'm=020.0'))
+    s = Selector(d=os.path.join(DATABASE_DIR, 'm=012.0'))
     # s.configure_traits()
+
+    # CHECK shape of data
+#     subdir_lst, path_lst = load_subdir_lists(s.d)
+#     outfile = open('check.txt', 'w')
+#     for sub in subdir_lst:
+#         outfile.write(sub + '\n')
+#         for res in res_lst:
+#             data = np.load(os.path.join(s.d, sub, sub + '-%s.npy' % res))
+#             outfile.write('%s - %s\n' % (data.shape, res))
+#             if data.shape == (50,):
+#                 print data.shape, '--', res, sub
+#         outfile.write('#######################################################\n')
+
+    # fix database data
+#     ln_x = np.load(os.path.join(s.d, 'm=011.0_n=0400', 'm=011.0_n=0400' + '-ln_x.npy'))
+#     x = np.load(os.path.join(s.d, 'm=011.0_n=0400', 'm=011.0_n=0400' + '-x.npy'))
+#     norm_cdf = np.load(os.path.join(s.d, 'm=011.0_n=0400', 'm=011.0_n=0400' + '-norm_cdf.npy'))
+#     gn_cdf = np.load(os.path.join(s.d, 'm=011.0_n=0400', 'm=011.0_n=0400' + '-gn_cdf.npy'))
+#     x = np.zeros_like(ln_x, dtype=object)
+#     for idx, i in enumerate(ln_x):
+#         x[idx] = mp.exp(i)
+#     print x
+#     np.save(os.path.join(s.d, 'm=011.0_n=0400', 'm=011.0_n=0400' + '-x.npy'), x)
+#     print ln_x.shape, x.shape, norm_cdf.shape, gn_cdf.shape
+
+#     ln_x = np.load(os.path.join(s.d, 'm=014.0_n=0300', 'm=014.0_n=0300' + '-ln_x.npy'))
+#     x = np.load(os.path.join(s.d, 'm=014.0_n=0300', 'm=014.0_n=0300' + '-x.npy'))
+#     norm_cdf = np.load(os.path.join(s.d, 'm=014.0_n=0300', 'm=014.0_n=0300' + '-norm_cdf.npy'))
+#     gn_cdf = np.load(os.path.join(s.d, 'm=014.0_n=0300', 'm=014.0_n=0300' + '-gn_cdf.npy'))
+#     x = np.zeros_like(ln_x, dtype=object)
+#     for idx, i in enumerate(ln_x):
+#         x[idx] = mp.exp(i)
+#     print x
+#     np.save(os.path.join(s.d, 'm=014.0_n=0300', 'm=014.0_n=0300' + '-x.npy'), x)
+#     print ln_x.shape, x.shape, norm_cdf.shape, gn_cdf.shape
+
+    from scratch.recursion.mp_settings import MPF_ONE, MPF_TWO, MPF_THREE
+    from scratch.recursion.fn_lib import  weib_cdf_vect, norm_cdf_vect, weibul_plot_vect, differentiate, sn_mp, weibl_cdf_vect
+    shape = mp.mpf(14.0)
+    scale = MPF_ONE
+#     ln_x = np.load(os.path.join(s.d, 'm=014.0_n=0400', 'm=014.0_n=0400' + '-ln_x.npy'))
+#     x = np.load(os.path.join(s.d, 'm=014.0_n=0400', 'm=014.0_n=0400' + '-x.npy'))
+#     weibr_wp = np.load(os.path.join(s.d, 'm=014.0_n=0400', 'm=014.0_n=0400' + '-weibr_wp.npy'))
+#     norm_wp = np.load(os.path.join(s.d, 'm=014.0_n=0400', 'm=014.0_n=0400' + '-norm_wp.npy'))
+#     gn_wp = np.load(os.path.join(s.d, 'm=014.0_n=0400', 'm=014.0_n=0400' + '-gn_wp.npy'))
+#     n_fil = mp.mpf('400')
+#
+#     c = mp.exp(-MPF_ONE / shape)
+#     std_est = (mp.power(shape, -MPF_ONE / shape) *
+#                scale * mp.sqrt(c * (MPF_ONE - c)) / mp.sqrt(n_fil))
+#     mean_est = (mp.power(shape , -MPF_ONE / shape) * scale * c +
+#                 mp.power(n_fil, -MPF_TWO / MPF_THREE) * scale *
+#                 mp.power(shape , -(MPF_ONE / shape + MPF_ONE / MPF_THREE)) *
+#                 mp.exp(-MPF_ONE / (MPF_THREE * shape)) * mp.mpf('0.996'))
+#     norm_cdf = norm_cdf_vect(x, mean_est, std_est)
+#
+#     print ln_x.shape, weibr_wp.shape, norm_wp.shape, gn_wp.shape
+#     # np.save(os.path.join(s.d, 'm=014.0_n=0400', 'm=014.0_n=0400' + '-norm_wp.npy'), weibul_plot_vect(norm_cdf))
+#
+#
+#     ln_x = np.load(os.path.join(s.d, 'm=012.0_n=0500', 'm=012.0_n=0500' + '-ln_x.npy'))
+#     x = np.load(os.path.join(s.d, 'm=012.0_n=0500', 'm=012.0_n=0500' + '-x.npy'))
+#     weibr_cdf = np.load(os.path.join(s.d, 'm=012.0_n=0500', 'm=012.0_n=0500' + '-weibr_cdf.npy'))
+#     norm_wp = np.load(os.path.join(s.d, 'm=012.0_n=0500', 'm=012.0_n=0500' + '-norm_wp.npy'))
+#     gn_wp = np.load(os.path.join(s.d, 'm=012.0_n=0500', 'm=012.0_n=0500' + '-gn_wp.npy'))
+#     n_fil = mp.mpf('0500')
+#
+#     print ln_x.shape, weibr_cdf.shape, norm_wp.shape, gn_wp.shape
+#     scale_r = scale / mp.power(n_fil, MPF_ONE / shape)
+#     weibr_cdf = weib_cdf_vect(x, shape, scale_r)
+#     np.save(os.path.join(s.d, 'm=012.0_n=0500', 'm=012.0_n=0500' + '-weibr_cdf.npy'), weibr_cdf)
 
     # mask = loadplot_data(os.path.join(s.d, s.name))
     # plt.show()
@@ -84,16 +157,16 @@ if __name__ == '__main__':
     # shutil.move(os.path.join(s.d), os.path.join(os.path.split(s.d)[0] + '_checked', s.name))
 
     # clear inf values
-    data = np.load(os.path.join(s.d, 'n=0033_m=20.0', 'n=0033_m=20.0' + '-dn.npy'))
-    print data
-
-    subdir_lst, path_lst = load_subdir_lists(s.d)
-    for sub in subdir_lst:
-        # for res in res_lst:
-        data = np.load(os.path.join(s.d, sub, sub + '-dn.npy'))
-        mask = (data == -mp.nan) + (data == mp.nan)
-        mp.mp.dps = 10
-        print data
+#     data = np.load(os.path.join(s.d, 'n=0033_m=20.0', 'n=0033_m=20.0' + '-dn.npy'))
+#     print data
+#
+#     subdir_lst, path_lst = load_subdir_lists(s.d)
+#     for sub in subdir_lst:
+#         # for res in res_lst:
+#         data = np.load(os.path.join(s.d, sub, sub + '-dn.npy'))
+#         mask = (data == -mp.nan) + (data == mp.nan)
+#         mp.mp.dps = 10
+#         print data
     #        if np.sum(mask) > 0:
     #            mask = ~mask
     #            for res in res_lst:
