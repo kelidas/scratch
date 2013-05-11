@@ -35,7 +35,8 @@ import matplotlib.pyplot as plt
 from threading import Thread
 from scipy import stats
 from fn_lib import fit_data_leastsq, f_gev, f_gumb, f_weib, f_norm, f_pareto, \
-                f_lognorm, f_lomax, f_powlognorm, f_pownorm, f_fatiguelife
+                f_lognorm, f_lomax, f_powlognorm, f_pownorm, f_fatiguelife, f_test, \
+                f_beta, f_test_wp
 
 # ===============================================================================
 # Data Viewer
@@ -299,6 +300,14 @@ class WPPlot(BasePlot):
     weibl_on = Bool(True)
     weibr_on = Bool(True)
 
+    fit_data_on = Bool(False)
+    xlim_on = Bool(False)
+    xlim_left = Float(-3.0)
+    xlim_right = Float(0.0)
+
+    fit_funcion = Trait('f_test_wp', {'f_test_wp':f_test_wp}
+                                )
+
     tangent_on = Bool(False)
 
     def _draw_fired(self):
@@ -311,6 +320,16 @@ class WPPlot(BasePlot):
                 x = self.data.ln_x[i]
                 y = self.data.gn_wp[i]
                 axes.plot(x, y)
+                if self.fit_data_on:
+                    x = x.astype(float)
+                    y = y.astype(float)
+                    if self.xlim_on:
+                        mask = np.logical_and(x >= self.xlim_left,
+                                              x <= self.xlim_right)
+                        x = x[mask]
+                        y = y[mask]
+                    y_fit = fit_data_leastsq(self.fit_funcion_, x, y, p0=None)
+                    axes.plot(x, y_fit, 'r-')
             if self.norm_on:
                 x = self.data.ln_x[i]
                 y = self.data.norm_wp[i]
@@ -351,6 +370,16 @@ class WPPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
+                       Group(
+                             Item('fit_data_on', enabled_when='gn_on'),
+                             Item('fit_funcion', enabled_when='fit_data_on'),
+                           HGroup(
+                                Item('xlim_on', enabled_when='fit_data_on'),
+                                Item('xlim_left', enabled_when='xlim_on'),
+                                Item('xlim_right', enabled_when='xlim_on'),
+                               ),
+                             label='fit data lsq',
+                             show_border=True),
                        HGroup(
                               Item('draw', show_label=False, springy=True),
                               Item('delete_last_one', show_label=False, springy=True),
@@ -363,6 +392,9 @@ class DiffPlot(BasePlot):
     name = 'Differential of Weibull plot'
     gn_on = Bool(True)
     norm_on = Bool(True)
+
+    p_lim_on = Bool(False)
+    p_lim = Float(1e-15)
 
     fit_data_on = Bool(False)
     xlim_on = Bool(False)
@@ -378,7 +410,8 @@ class DiffPlot(BasePlot):
                                 'lomax':f_lomax,
                                 'power lognormal':f_powlognorm,
                                 'power normal':f_pownorm,
-                                'reciprocal':f_fatiguelife}
+                                'fatiguelife':f_fatiguelife,
+                                'test':f_test}
                                 )
 
     def _draw_fired(self):
@@ -401,6 +434,13 @@ class DiffPlot(BasePlot):
                         y = y[mask]
                     y_fit = fit_data_leastsq(self.fit_funcion_, x, y, p0=None)
                     axes.plot(x, y_fit, 'r-')
+                if self.p_lim_on:
+                    idx = np.where(self.data.gn_cdf[i] <= self.p_lim)[0]
+                    if len(idx) != 0:
+                        idx = idx[-1]
+                        x1 = self.data.ln_x_diff[i][idx]
+                        y1 = self.data.gn_diff[i][idx]
+                        axes.plot(x1, y1, 'ko')
             if self.norm_on:
                 x = self.data.ln_x_diff[i]
                 y = self.data.norm_diff[i]
@@ -419,8 +459,12 @@ class DiffPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
+                       HGroup(
+                              Item('p_lim_on', show_label=False),
+                              Item('p_lim', enabled_when='p_lim_on'),
+                              ),
                        Group(
-                             'fit_data_on',
+                             Item('fit_data_on', enabled_when='gn_on'),
                              Item('fit_funcion', enabled_when='fit_data_on'),
                            HGroup(
                                 Item('xlim_on', enabled_when='fit_data_on'),
@@ -512,6 +556,9 @@ class PDFPlot(BasePlot):
     weibl_on = Bool(False)
     weibr_on = Bool(False)
 
+    p_lim_on = Bool(False)
+    p_lim = Float(1e-15)
+
     def _draw_fired(self):
         axes = self.figure.axes[0]
         if self.clear_on:
@@ -523,6 +570,13 @@ class PDFPlot(BasePlot):
                 dx = (self.data.x[i][1:] - self.data.x[i][:-1])
                 y = ((self.data.gn_cdf[i][ 1:] - self.data.gn_cdf[i][:-1]) / dx)
                 axes.plot(x, y, 'k-')
+                if self.p_lim_on:
+                    idx = np.where(self.data.gn_cdf[i] <= self.p_lim)[0]
+                    if len(idx) != 0:
+                        idx = idx[-1]
+                        x1 = x[idx]
+                        y1 = y[idx]
+                        axes.plot(x1, y1, 'ko')
             if self.norm_on:
                 x = (self.data.x[i][1:] + self.data.x[i][:-1]) / 2.
                 dx = (self.data.x[i][1:] - self.data.x[i][:-1])
@@ -551,6 +605,10 @@ class PDFPlot(BasePlot):
                              show_border=True,
                              label='data select',
                              ),
+                       HGroup(
+                              Item('p_lim_on', show_label=False),
+                              Item('p_lim', enabled_when='p_lim_on'),
+                              ),
                        HGroup(
                               Item('draw', show_label=False, springy=True),
                               Item('delete_last_one', show_label=False, springy=True),
@@ -615,8 +673,8 @@ class LoadThread(Thread):
 
 class PythonShell(HasTraits):
     shell = Dict()
-    
-    traits_view=View(
+
+    traits_view = View(
                      Item('shell', editor=ShellEditor(), show_label=False, id='python_shell.shell'),
                      id='python_shell.view'
                      )
