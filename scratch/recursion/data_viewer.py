@@ -413,7 +413,7 @@ class DiffPlot(BasePlot):
                                 'power normal':f_pownorm,
                                 'fatiguelife':f_fatiguelife,
                                 'weibull m=1':f_weib_m1,
-                                'weibull m=1 s=1':f_weib_ms1
+                                'weibull m=1 s=1':f_weib_ms1,
                                 'test':f_test}
                                 )
 
