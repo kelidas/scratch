@@ -89,6 +89,18 @@ def f_weib(x, a, b, c):
     return rv.cdf(-x)
     # return 1 - np.exp(-(-(x - c) / a) ** b)
 
+def f_weib_m1(x, a, b):
+    '''CDF of the Weibull distribution reflected across the axis y.
+    '''
+    rv = stats.weibull_min(1, loc=a, scale=b)
+    return rv.cdf(-x)
+
+def f_weib_ms1(x, a, b):
+    '''CDF of the Weibull distribution reflected across the axis y.
+    '''
+    rv = stats.weibull_min(1, loc=a, scale=1)
+    return rv.cdf(-x)
+
 def f_gumb(x, a, b):
     '''CDF of the Gumbel distribution reflected across the axis y.
     '''

@@ -36,7 +36,7 @@ from threading import Thread
 from scipy import stats
 from fn_lib import fit_data_leastsq, f_gev, f_gumb, f_weib, f_norm, f_pareto, \
                 f_lognorm, f_lomax, f_powlognorm, f_pownorm, f_fatiguelife, f_test, \
-                f_beta, f_test_wp
+                f_beta, f_test_wp,f_weib_m1,f_weib_ms1
 
 # ===============================================================================
 # Data Viewer
@@ -412,6 +412,8 @@ class DiffPlot(BasePlot):
                                 'power lognormal':f_powlognorm,
                                 'power normal':f_pownorm,
                                 'fatiguelife':f_fatiguelife,
+                                'weibull m=1':f_weib_m1,
+                                'weibull m=1 s=1':f_weib_ms1
                                 'test':f_test}
                                 )
 
