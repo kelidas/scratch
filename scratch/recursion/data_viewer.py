@@ -350,7 +350,7 @@ class WPPlot(BasePlot):
                               'c--')
         def form3(x, pos):
             mp.mp.dps = 1000
-            return '%s %%' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))) * 100, 6)
+            return '%s' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))), 6)
         formatter = FuncFormatter(form3)
         axes.yaxis.set_major_formatter(FuncFormatter(formatter))
         axes.set_xlabel('log(x)')
