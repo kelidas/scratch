@@ -56,6 +56,11 @@ def differentiate(x, y):
     '''
     return np.diff(y) / np.diff(x)
 
+def integrate(x, y):
+    '''Calculate the integral for given arrays x and y
+    '''
+    return 0.5 * (y[:-1] + y[1:]) * np.diff(x)
+
 def dk_approx(k, scale, shape, gn_wp, ln_x):
     '''Calculate approximate position of the tangent
     '''
@@ -68,7 +73,6 @@ def dk_approx(k, scale, shape, gn_wp, ln_x):
     b_approx = 0
     c_approx = 100
 
-    import time
     bb = gn_wp - shape * k / scale * ln_x
     ln_x = shape * k / scale * ln_x
     for b in bb:
@@ -95,7 +99,7 @@ def f_weib_m1(x, a, b):
     rv = stats.weibull_min(1, loc=a, scale=b)
     return rv.cdf(-x)
 
-def f_weib_ms1(x, a, b):
+def f_weib_ms1(x, a):
     '''CDF of the Weibull distribution reflected across the axis y.
     '''
     rv = stats.weibull_min(1, loc=a, scale=1)
