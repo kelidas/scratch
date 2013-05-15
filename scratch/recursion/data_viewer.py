@@ -36,7 +36,7 @@ from threading import Thread
 from scipy import stats
 from fn_lib import fit_data_leastsq, f_gev, f_gumb, f_weib, f_norm, f_pareto, \
                 f_lognorm, f_lomax, f_powlognorm, f_pownorm, f_fatiguelife, f_test, \
-                f_beta, f_test_wp,f_weib_m1,f_weib_ms1
+                f_beta, f_test_wp, f_weib_m1, f_weib_ms1, integrate
 
 # ===============================================================================
 # Data Viewer
@@ -438,6 +438,14 @@ class DiffPlot(BasePlot):
                     y_fit, plsq = fit_data_leastsq(self.fit_funcion_, x, y, p0=None)
                     print 'm =', self.data.shape[i], ', n =', self.data.number_of_filaments[i], plsq
                     axes.plot(x, y_fit, 'r-')
+                    plt.plot(self.data.ln_x[i], self.data.gn_wp[i])
+                    plt.plot(self.data.ln_x[i], self.data.norm_wp[i])
+                    y_den = (self.data.shape[i] * self.data.number_of_filaments[i] - self.data.shape[i]) * y_fit + self.data.shape[i]
+                    y_int = integrate(x, y_den)
+                    pos = (self.data.gn_wp[i][-1] - y_int[-1])
+                    print pos
+                    plt.plot((x[1:] + x[:-1]) * 0.5, y_int + pos, 'r-')
+                    plt.show(block=False)
                 if self.p_lim_on:
                     idx = np.where(self.data.gn_cdf[i] <= self.p_lim)[0]
                     if len(idx) != 0:

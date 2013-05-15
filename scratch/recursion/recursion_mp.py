@@ -161,13 +161,14 @@ if __name__ == '__main__':
     doctest.testmod()
 
     mp.mp.dps = 1000
-    shape = mp.mpf('6.')
+    shape = mp.mpf('20.')
     scale = mp.mpf('1.')
-    n_fil = mp.mpf('10')
+    n_fil = mp.mpf('3')
     x1 = mp.exp(mp.mpf('-1'))
 
     recursion_gn_mp = gn_mp_vect(x1, scale, shape, n_fil, True)
     print 'Result of recursion_gn_mp for one x value =', recursion_gn_mp
+
 
     # TODO: computational time estimation
 #     t_est = 0

@@ -59,7 +59,7 @@ def differentiate(x, y):
 def integrate(x, y):
     '''Calculate the integral for given arrays x and y
     '''
-    return 0.5 * (y[:-1] + y[1:]) * np.diff(x)
+    return np.cumsum(0.5 * (y[:-1] + y[1:]) * np.diff(x))
 
 def dk_approx(k, scale, shape, gn_wp, ln_x):
     '''Calculate approximate position of the tangent
@@ -173,11 +173,11 @@ def f_test(x, a, b, c):
     rv = stats.chi2(c, loc=a, scale=b)
     return rv.cdf(-x)
 
-def f_test_wp(x, a, b):
+def f_test_wp(x, a, b, c):
     '''CDF in WP of the test distribution reflected across the axis y.
     '''
-    rv = stats.gumbel_r(loc=a, scale=b)
-    return np.log1p(np.log1p(-rv.cdf(x)) - 1)
+    rv = stats.weibull_min(c, loc=a, scale=b)
+    return  rv.cdf(x)
 
 def fit_data_leastsq(f, x, y, p0=None):
     '''Fitting data using scipy leastsq function.
