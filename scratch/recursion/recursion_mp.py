@@ -70,7 +70,7 @@ def gn_mp(x, scale, shape, n, timeit=False):
     cdf_arr = np.zeros(n, dtype=object)
     cdf_arr.fill(None)
     x_arr = np.zeros(n, dtype=object)
-    for i in range(1, n):
+    for i in range(1, int(n)):
         x_arr[n - i] = mp.fraction(n, n - i) * x
     def recursion_gn_mp(x_val, scale, shape, n):
         index_n = int(n) - 1
