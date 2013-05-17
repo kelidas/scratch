@@ -442,6 +442,7 @@ class DiffPlot(BasePlot):
                     plt.plot(self.data.ln_x[i], self.data.norm_wp[i])
                     y_den = (self.data.shape[i] * self.data.number_of_filaments[i] - self.data.shape[i]) * y_fit + self.data.shape[i]
                     y_int = integrate(x, y_den)
+
                     pos = (self.data.gn_wp[i][-1] - y_int[-1])
                     print pos
                     plt.plot((x[1:] + x[:-1]) * 0.5, y_int + pos, 'r-')

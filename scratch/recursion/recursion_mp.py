@@ -170,6 +170,32 @@ if __name__ == '__main__':
     print 'Result of recursion_gn_mp for one x value =', recursion_gn_mp
 
 
+#     shape = mp.mpf('5')
+#     scale = mp.mpf('0.02')
+#     n_fil = mp.mpf('5')
+#
+#     # x1 = mp.exp(mp.mpf('-1'))
+#     x1 = np.linspace(0, scale, 100)
+#
+#     recursion_gn_mp = gn_mp_vect(x1, scale, shape, n_fil, False)
+#
+#     recursion_gn_mp_ch = 1 - (1 - recursion_gn_mp) ** 100
+#
+#     from fn_lib import weibul_plot_vect
+#     import matplotlib.pyplot as plt
+#     from matplotlib.ticker import FuncFormatter
+#     fig = plt.figure()
+#     axes = fig.add_subplot(111)
+#     axes.plot(np.log(x1.astype(float)), weibul_plot_vect(recursion_gn_mp))
+#     axes.plot(np.log(x1.astype(float)), weibul_plot_vect(recursion_gn_mp_ch) - 4.605)
+#     def form3(x, pos):
+#             mp.mp.dps = 1000
+#             return '%s' % mp.nstr((MPF_ONE - mp.exp(-mp.exp(x))), 6)
+#     formatter = FuncFormatter(form3)
+#     axes.yaxis.set_major_formatter(FuncFormatter(formatter))
+#     plt.show()
+
+
     # TODO: computational time estimation
 #     t_est = 0
 #     for i in range(10):

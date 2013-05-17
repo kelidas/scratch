@@ -91,7 +91,7 @@ def f_weib(x, a, b, c):
     '''
     rv = stats.weibull_min(c, loc=a, scale=b)
     return rv.cdf(-x)
-    # return 1 - np.exp(-(-(x - c) / a) ** b)
+    # return 1 - np.exp(-((-x - c) / a) ** b)
 
 def f_weib_m1(x, a, b):
     '''CDF of the Weibull distribution reflected across the axis y.

@@ -72,8 +72,77 @@ def loadplot_data(part_name):
     return mask
 
 if __name__ == '__main__':
-    s = Selector(d=os.path.join(DATABASE_DIR, 'm=012.0'))
+    from scratch.recursion.fn_lib import  weib_cdf_vect, norm_cdf_vect, weibul_plot_vect, differentiate, sn_mp, weibl_cdf_vect
+    from scratch.recursion.fn_lib import fit_data_leastsq
+    from scipy import stats
+    s = Selector(d=os.path.join(DATABASE_DIR, 'm=010.0'))
     # s.configure_traits()
+
+    def f_weib(x, a, b, c):
+        '''CDF of the Weibull distribution reflected across the axis y.
+        '''
+        rv = stats.weibull_min(c, loc=a, scale=b)
+        return rv.cdf(x)
+
+    x = np.load(os.path.join(s.d, 'm=010.0_n=0004', 'm=010.0_n=0004' + '-x.npy')).astype(float)
+    gn_cdf = np.load(os.path.join(s.d, 'm=010.0_n=0004', 'm=010.0_n=0004' + '-gn_cdf.npy')).astype(float)
+    shape = 3.0
+    n = 4.0
+    y = (x ** (-shape) * np.log(-1 / (gn_cdf - 1))) ** (-1 / shape)
+#     ys = np.log(-np.log((1 - gn_cdf))) / np.log(x / 1.0)
+#     plt.plot(np.log(x), ys)
+#     plt.show()
+
+    yy = (1.0 / y ** ((shape))) / n
+#     plt.figure(0)
+#     plt.plot(np.log(x), y)
+
+#     plt.figure(1)
+#     plt.plot(x, y)
+
+    y_fit, par = fit_data_leastsq(f_weib, x, yy)
+    plt.figure(2)
+    plt.plot(x, yy)
+    plt.plot(x, y_fit)
+
+    plt.figure(3)
+    plt.plot(np.log(x - par[0][0]), weibul_plot_vect(yy))
+    plt.plot(np.log(x - par[0][0]), weibul_plot_vect(y_fit))
+
+    plt.figure(4)
+    plt.plot(np.log(x), weibul_plot_vect(yy))
+    plt.plot(np.log(x), weibul_plot_vect(y_fit))
+
+#     plt.figure(3)
+#     plt.plot(np.log(x), weibul_plot_vect(gn_cdf))
+#     plt.plot(np.log(x), weibul_plot_vect(weib_cdf_vect(x, shape, y)))
+
+    s = Selector(d=os.path.join(DATABASE_DIR, 'm=010.0'))
+    x = np.load(os.path.join(s.d, 'm=010.0_n=0050', 'm=010.0_n=0050' + '-x.npy')).astype(float)
+    gn_cdf = np.load(os.path.join(s.d, 'm=010.0_n=0050', 'm=010.0_n=0050' + '-gn_cdf.npy')).astype(float)
+    shape = 3.0
+    n = 50.0
+    y = (x ** (-shape) * np.log(-1 / (gn_cdf - 1))) ** (-1 / shape)
+    yy = (1.0 / y ** ((shape))) / n
+
+    x = x[x <= 0.9]
+    yy = yy[x <= 0.9]
+    y_fit, par = fit_data_leastsq(f_weib, x, yy, p0=[0.5, 1.0, 1.0])
+    print par
+
+    plt.figure(2)
+    plt.plot(x, yy)
+    plt.plot(x, y_fit, 'k-')
+
+    plt.figure(3)
+    plt.plot(np.log(x - par[0][0]), weibul_plot_vect(yy))
+    plt.plot(np.log(x - par[0][0]), weibul_plot_vect(y_fit))
+
+    plt.figure(4)
+    plt.plot(np.log(x), weibul_plot_vect(yy))
+    plt.plot(np.log(x), weibul_plot_vect(y_fit))
+
+    plt.show()
 
     # CHECK shape of data
 #     subdir_lst, path_lst = load_subdir_lists(s.d)

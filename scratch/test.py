@@ -1,3 +1,6 @@
+from traits.etsconfig.api import ETSConfig
+ETSConfig.toolkit = 'wx'
+
 from etsproxy.traits.api import \
     HasTraits, Int, Array, Str, implements, Range, Property, cached_property, \
      Float, Instance, Any, Interface, Event, on_trait_change, Button, Bool, Callable
@@ -19,26 +22,4 @@ from util.traits.editors.mpl_figure_editor import \
 class B(HasTraits):
     str = Str('B')
 
-class D(HasTraits):
-    x = Any
-
-class A(HasTraits):
-    b = Instance(B)
-
-    dd = Instance(D)
-
-    d = Button('test')
-    def _d_fired(self):
-        self.dd.x = B(str='xx')
-    view = View('d')
-
-class C(A):
-    b = Property(Instance(B))
-    def _get_b(self):
-        return B(str='xxx')
-
-
-
-
-a = A()
-D().x.str
+B().configure_traits()
