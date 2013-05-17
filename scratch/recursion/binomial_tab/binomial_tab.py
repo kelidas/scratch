@@ -3,8 +3,6 @@ import numpy as np
 import mpmath as mp
 import os
 
-mp.mp.dps = 1000
-
 MDIR = os.path.dirname(__file__)
 
 
