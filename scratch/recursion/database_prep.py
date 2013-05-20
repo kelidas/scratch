@@ -39,8 +39,9 @@ res_lst = ['x',
            'dn',
            'weibl_wp',
            'weibl_cdf',
-           'sk',
-           'dk']
+           # 'sk',
+           # 'dk'
+           ]
 
 def send_email_smtp(sender, receiver, email):
     # Send the message via local SMTP server.
@@ -94,7 +95,7 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
         x[i] = mp.exp(ln_x[i])
 
     start = sysclock()
-    recursion_gn_mp = gn_mp_vect(x, scale, shape, n_fil, False)
+    gn_cdf = gn_mp_vect(x, scale, shape, n_fil, False)
     gn_arr_time = sysclock() - start
     msg += 'gn_mp running time = %f' % gn_arr_time
     print msg
@@ -117,7 +118,7 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
     #===========================================================================
     # Calculate values for Weibull plot
     #===========================================================================
-    gn_wp = weibul_plot_vect(recursion_gn_mp)
+    gn_wp = weibul_plot_vect(gn_cdf)
     norm_wp = weibul_plot_vect(norm_cdf)
     weibr_wp = weibul_plot_vect(weibr_cdf)
     dn = dn_mp(scale, shape, n_fil)
@@ -174,7 +175,7 @@ def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_m
     #===========================================================================
     if plot:
         plt.figure()
-        plt.plot(x, recursion_gn_mp, 'g-x')
+        plt.plot(x, gn_cdf, 'g-x')
         plt.plot(x, norm_cdf, 'r-x')
         plt.plot(x, weibr_cdf, 'b-x')
 

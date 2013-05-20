@@ -17,10 +17,22 @@ ax.set_ylabel('number of filaments')
 ax.set_zlabel('weibull location')
 
 plt.figure()
-plt.plot(Y.T, (Z / Y / X).T)
+# plt.plot(Y.T, (Z / Y / X).T)
+plt.plot(np.log(Y.T), np.log((Z / Y / X).T))
 
 plt.figure()
-plt.plot(X, (Z / Y / X))
+A = (X.T[-1, :][:-1] + X.T[-1, :][1:]) / 2.
+B = np.abs(np.diff(np.log((Z / Y / X).T)[-1, :]) / np.diff(X.T[-1, :]))
+plt.plot(np.log(A), np.log(B))
+
+from scipy import stats
+slope, intercept, r_value, p_value, std_err = stats.linregress(np.log(A), np.log(B))
+print 'slope =', slope, ', intercept =', intercept
+print 'coefficient of determination =', r_value ** 2
+plt.plot(np.log(A), slope * np.log(A) + intercept, 'k--')
+
+# plt.figure()
+# plt.plot(X, (Z / Y / X))
 plt.show()
 exit()
 
