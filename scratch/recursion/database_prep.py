@@ -64,7 +64,7 @@ def generate_email(sender, receiver, subject):
 
     return frame
 
-def data_preparation(n_fil, shape, scale, proc_id=0, n_sam=500, n_proc=1, send_msg=False, plot=True):
+def data_preparation(n_fil, shape, scale, proc_id=1, n_sam=500, n_proc=1, send_msg=False, plot=True):
     n_fil = mp.mpf('%i' % n_fil)
     shape = mp.mpf('%i' % shape)
     scale = mp.mpf('%i' % scale)
@@ -238,7 +238,7 @@ if __name__ == '__main__':
 
 #    n_sam = 500.
 #    n_proc = 1
-#    data_preparation(n_fil, shape, scale=1, proc_id=0, n_sam=500, n_proc=1, send_msg=False, plot=True)
+#    data_preparation(n_fil, shape, scale=1, proc_id=1, n_sam=500, n_proc=1, send_msg=False, plot=True)
 
     #===========================================================================
     # Run more n (<30) and more shape
