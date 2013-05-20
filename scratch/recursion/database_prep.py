@@ -141,14 +141,14 @@ def data_preparation(n_fil, shape, scale, proc_id=1, n_sam=500, n_proc=1, send_m
     #===========================================================================
     # Save arrays
     #===========================================================================
-    name = 'm=%05.1f_n=%04i' % (n_fil, shape)
-    dir_name = os.path.join('m=%05.1f' % shape, 'm=%05.1f_n=%04i' % (n_fil, shape))
+    name = 'm=%05.1f_n=%04i' % (shape, n_fil)
+    dir_name = os.path.join('m=%05.1f' % shape, 'm=%05.1f_n=%04i' % (shape, n_fil))
     if os.access(dir_name, os.F_OK) == False:
         if os.access('m=%05.1f' % shape, os.F_OK) == False:
             os.mkdir('m=%05.1f' % shape)
         os.mkdir(dir_name)
     if n_proc > 1:
-        name = '%02i_m=%05.1f_n=%04i' % (proc_id, n_fil, shape)
+        name = '%02i_m=%05.1f_n=%04i' % (proc_id, shape, n_fil)
     for res in res_lst:
         np.save(os.path.join(dir_name, name + '-' + res + '.npy'), locals()[res])
 
