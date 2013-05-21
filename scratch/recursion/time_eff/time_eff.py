@@ -76,6 +76,7 @@ from scipy import stats
 data_old = np.load('t_old.npy')
 data_100 = np.load('tmp_100.npy')
 data_1000 = np.load('tmp_1000.npy')
+data_1000_gmpy = np.load('tmp_1000_gmpy.npy')
 data_10000 = np.load('tmp_10000.npy')
 
 print 'old'
@@ -110,6 +111,7 @@ plt.plot(data_100[:, 0], data_100[:, 1], label='100')
 # plt.plot(data_100[:, 0], data_100_fit, 'k--')
 
 plt.plot(data_1000[:, 0], data_1000[:, 1], label='1000')
+plt.plot(data_1000_gmpy[:, 0], data_1000_gmpy[:, 1], label='1000_gmpy')
 plt.plot(data_1000[:, 0][mask], data_1000_fit[mask], 'k--')
 
 plt.plot(data_10000[:, 0], data_10000[:, 1], label='10000')
