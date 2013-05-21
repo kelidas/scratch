@@ -163,7 +163,7 @@ if __name__ == '__main__':
     mp.mp.dps = 100
     shape = mp.mpf('6.')
     scale = mp.mpf('1.')
-    n_fil = mp.mpf('200')
+    n_fil = mp.mpf('10')
     x1 = mp.exp(mp.mpf('-1'))
 
     recursion_gn_mp = gn_mp_vect(x1, scale, shape, n_fil, True)
