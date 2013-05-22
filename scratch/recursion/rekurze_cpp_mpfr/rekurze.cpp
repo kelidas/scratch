@@ -8,11 +8,7 @@
 #include <assert.h>
 //#include <conio.h>
 using namespace std;
-#include "BinomicLookup.h" //Hodnoty binomickeho soucinitele.
-
-//Gaussian distribution
-//#include "IPMPAR.c"
-
+#include "BinomicLookup.h"
 
 clock_t zac,kon,simSTART,simKONEC;
 
@@ -20,10 +16,7 @@ double Binomic(int n, int k);
 
 mpfr_t MPF_ZERO, MPF_ONE;
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//Distribucni funkce jednoho vlakna. Nechat byt. Bohuzel 'm' neni integer.
+// Distribution function of one filament.
 int Weibull(mpfr_t& weib_val,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_rnd_t rnd){
 	if (mpfr_cmp_ui(x, 0.0)<=0) {
         mpfr_set(weib_val,MPF_ZERO, rnd);
@@ -39,10 +32,7 @@ int Weibull(mpfr_t& weib_val,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_rnd_t rn
     return 0;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//Prvni verze rekurzivni funkce. Za behu cyklu pres 'k' se rozhoduje o pricitani a odcitani
+// Recursion function. Distribution of the yarn strength.
 int Gn(mpfr_t& gn_val,mpfr_t& gn_ret,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_t n, mpfr_rnd_t rnd){
 // 	if( mpfr_cmp_ui(n, 1) < 0 ) {
 //         mpfr_set(gn_val,MPF_ZERO, rnd);
@@ -69,9 +59,9 @@ int Gn(mpfr_t& gn_val,mpfr_t& gn_ret,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_
 
 	for(int k = 1 ; k < n_int ; k++){
 		mpfr_mul(cdfk, cdfk, cdfx, rnd); // cdf_k = [ F(x) ]^k
-		komb_d = BinomicLookup[(n_int-1)*69 + k - 1]; //Binomic(n,k);
+		komb_d = BinomicLookup[(n_int-1)*69 + k - 1];
 		mpfr_set_d(komb, komb_d, rnd);
-		if(( k%2 ) == 0) mpfr_neg(komb, komb, rnd);//pro k sud� je znam�nko z�porn�
+		if(( k%2 ) == 0) mpfr_neg(komb, komb, rnd);
         mpfr_mul(vysl_1, komb, cdfk, rnd);
         mpfr_set_ui(new_d, n_int-k, rnd);
         mpfr_div(new_x, n, new_d, rnd);
@@ -84,13 +74,13 @@ int Gn(mpfr_t& gn_val,mpfr_t& gn_ret,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_
 
 	mpfr_mul(cdfk, cdfk, cdfx, rnd); //cdf_k = [ Weibull(x) ]^n
     
-	//jeste nutno vyridit posledni clen kde k==n
+	// k==n
 	if(( n_int%2 ) == 0)	{ 
         mpfr_sub(vysl, vysl, cdfk, rnd);	
-    }//pro k sud� je znam�nko z�porn�
+    }
 	else				{ 
         mpfr_add(vysl, vysl, cdfk,rnd);	 
-            }//pro k lich� je znam�nko kladn�
+            }
     mpfr_set(gn_ret, vysl, rnd);
     //mpfr_sub(gn_val, gn_val, vysl, rnd);
     mpfr_set(gn_val, vysl, rnd);
@@ -113,19 +103,17 @@ int main(){
     
     double xmultiple;
 
-    //zakladni parametry rozdeleni pevnosti vlakna
     double shape_in;
     double scale_in = 1.0;
 
     double pom=0.0;
     char pom_str[50];
     int vlaken_in;
-    cout<<"Zadej pocet vlaken ve svazku: "; cin>>vlaken_in;
-    cout<<"Zadej Weibulluv modulus (shape factor): ";   cin>>shape_in;
+    cout<<"Number of filaments: "; cin>>vlaken_in;
+    cout<<"Weibull modulus (shape factor): ";   cin>>shape_in;
 
     mpfr_t x, scale, shape, weib_val, gn_val, vlaken, gn_ret;
     mpfr_inits (x, scale, shape, weib_val, gn_val, vlaken,gn_ret, (mpfr_ptr) 0);
-    cout << "pokus" << (" dfs %f",scale_in)<< endl;
     
     inex = mpfr_set_str (gn_val, "0.0",10, GMP_RNDN); assert (inex == 0);
     
@@ -134,15 +122,17 @@ int main(){
     inex = mpfr_set_str (scale, pom_str ,10, GMP_RNDN); assert (inex == 0);
     sprintf(pom_str, "%f", shape_in);
     inex = mpfr_set_str (shape, pom_str,10, GMP_RNDN); assert (inex == 0);
+    sprintf(pom_str, "%d", vlaken_in);
+    inex = mpfr_set_str (vlaken, pom_str,10, GMP_RNDN); assert (inex == 0);
     mpfr_printf( "x = %.1000Rg\n",x);
     mpfr_printf( "scale = %.1000Rg\n",scale);
     mpfr_printf( "shape = %.1000Rg\n",shape);
+    mpfr_printf( "shape = %.1000Rg\n",shape);
     
     Weibull(weib_val,x,scale,shape,GMP_RNDN);
-    mpfr_printf( "weib = %.1000Rg\n",weib_val);
+    mpfr_printf( "weib = %.1000Rg\n",vlaken);
     
-    sprintf(pom_str, "%d", vlaken_in);
-    inex = mpfr_set_str (vlaken, pom_str,10, GMP_RNDN); assert (inex == 0);
+    
     double start = clock();
     Gn(gn_val,gn_ret, x, scale, shape, vlaken, GMP_RNDN);
     cout << "time = " << (clock() - start)/(double)CLOCKS_PER_SEC << endl;
