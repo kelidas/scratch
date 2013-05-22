@@ -1,4 +1,4 @@
-from scratch.recursion.temp.recursion import Gn
+from scratch.recursion.temp.recursion_mp_loop import Gn
 from scratch.recursion.recursion_mp import gn_mp
 import numpy as np
 import mpmath as mp
@@ -53,8 +53,6 @@ x = .6  # np.exp(lnx)
 #
 # plt.plot(n_lst, t_mp_lst)
 
-
-
 # OLD version of recursion (naive)
 # t_lst = []
 # n_lst = np.arange(3., 18)
@@ -67,7 +65,7 @@ x = .6  # np.exp(lnx)
 #     print n, g
 #
 # t_lst = np.array(t_lst)
-# np.save('t_old_mp.npa', np.vstack((n_lst, t_lst)).T)
+# np.save('t_old_mp_gmpy.npa', np.vstack((n_lst, t_lst)).T)
 #
 # plt.plot(n_lst, t_lst)
 
@@ -76,6 +74,7 @@ from scipy import stats
 
 data_old = np.load('t_old.npa')
 data_old_mp = np.load('t_old_mp.npa')
+data_old_mp_gmpy = np.load('t_old_mp_gmpy.npa')
 data_old_c = np.load('t_old_c.npa')
 data_100 = np.load('tmp_100.npa')
 data_1000 = np.load('tmp_1000.npa')
@@ -109,6 +108,7 @@ print 'coefficient of determination =', r_value ** 2
 
 plt.plot(data_old[:, 0], data_old[:, 1], label='old')
 plt.plot(data_old_mp[:, 0], data_old_mp[:, 1], label='old_mp')
+plt.plot(data_old_mp_gmpy[:, 0], data_old_mp_gmpy[:, 1], label='old_mp_gmpy')
 plt.plot(data_old_c[:, 0], data_old_c[:, 1], label='old_c')
 plt.plot(data_old[:, 0], data_old_fit, 'k--')
 
