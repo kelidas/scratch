@@ -7,7 +7,8 @@ import numpy as np
 conec = ffnet.imlgraph((4, 4, 1), biases=True)
 net = ffnet.ffnet(conec)
 
-nx.draw_graphviz(net.graph, prog='dot')
+
+nx.draw_graphviz(net.graph, prog='dot', node_color='#A0CBE2', node_size=500)
 plt.show()
 
 data = np.loadtxt('data_MC_32sim.txt', delimiter='\t', usecols=(0, 1, 3, 4, 8),
@@ -21,8 +22,9 @@ target = data[:, -1]
 print "TRAINING NETWORK..."
 import sys; sys.stdout.flush()  # Just to ensure dislpaying the above messages here
 # net.train_tnc(input, target, maxfun=5000, nproc=1, messages=1)
-net.train_momentum(input, target, eta=0.2, momentum=0.8, maxiter=10000, disp=1)
+# net.train_momentum(input, target, eta=0.2, momentum=0.8, maxiter=10000, disp=1)
 # net.train_rprop(input, target)
+# net.train_cg(input, target)
 # net.train_bfgs(input, target)
 # net.train_genetic(input, target, individuals=20, generations=500)
 
