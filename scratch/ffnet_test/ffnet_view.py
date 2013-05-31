@@ -286,13 +286,15 @@ class FFnet(HasTraits):
 
 class FFnetView(HasTraits):
 
+    input_dir = Directory(os.path.split(__file__)[0])
+
     input_file = File(entries=10)
     def _input_file_default(self):
-        return os.path.split(__file__)[0] + '\\input.txt'
+        return os.path.join(self.input_dir, 'input.txt')
 
     target_file = File(entries=10)
     def _target_file_default(self):
-        return os.path.split(__file__)[0] + '\\target.txt'
+        return os.path.join(self.input_dir, 'target.txt')
 
     ffnet = Instance(FFnet, ())
 
