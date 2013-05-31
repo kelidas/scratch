@@ -1178,7 +1178,7 @@ if __name__ == '__main__':
 #                     )
 #
     ct = CrackTracer(data_dir=os.path.join(aramis_dir, 'Probe-1-Ausschnitt-Xf15a1-Yf5a4'),
-                     evaluated_time_step=400,
+                     evaluated_time_step=458,
                      time_step_size=5,
                      integ_radius=1,
                      w_detect_step= -1,
@@ -1199,7 +1199,7 @@ if __name__ == '__main__':
     ct.crack_spacing_avg
     print 'l_x', ct.l_x
 
-    plot_type = '2d'
+    plot_type = '3d-cracks'
 
     if plot_type == '3d-surf':
         ct.plot3d_surf()
