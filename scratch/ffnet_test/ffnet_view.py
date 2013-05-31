@@ -2,7 +2,7 @@
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
     Constant, Directory, File, Str, Button, Int, List, Interface, implements, \
-    Either, Enum, String, PythonValue, Any, Dict, Code
+    Either, Enum, String, PythonValue, Any, Dict, Code, Long
 from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
 from traitsui.api import View, Item, Group, HGroup, OKButton, CodeEditor, UItem, \
         VGroup, HSplit, EnumEditor, Handler, SetEditor, EnumEditor, InstanceEditor, \
@@ -61,7 +61,7 @@ class FFnet(HasTraits):
     input_train = Array
     target = Array
 
-    n_inp = Int(enter_set=True, auto_set=False)
+    n_inp = Long(enter_set=True, auto_set=False)
     @on_trait_change('input_train')
     def _n_inp_update(self):
         ndim = self.input_train.ndim
@@ -70,7 +70,7 @@ class FFnet(HasTraits):
         else:
             self.n_inp = self.input_train.shape[1]
 
-    n_hid = List(Int, enter_set=True, auto_set=False)
+    n_hid = List(Long, enter_set=True, auto_set=False)
     @on_trait_change('input_train')
     def _n_hid_update(self):
         ndim = self.input_train.ndim
@@ -79,7 +79,7 @@ class FFnet(HasTraits):
         else:
             self.n_hid = [self.input_train.shape[1]]
 
-    n_tar = Int(enter_set=True, auto_set=False)
+    n_tar = Long(enter_set=True, auto_set=False)
     @on_trait_change('target')
     def _n_tar_update(self):
         ndim = self.target.ndim
