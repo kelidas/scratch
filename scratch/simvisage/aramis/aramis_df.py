@@ -101,11 +101,12 @@ class CrackTracer(HasTraits):
     @cached_property
     def _get_input_list(self):
 
-        fn_list = os.listdir(self.data_dir)
+        fn_list = [v for v in os.listdir(self.data_dir) if os.path.splitext(v)[1] == ".txt"]
 
         # remove hidden directory files from the file name list
-        if '.directory' in fn_list :
-            fn_list.remove('.directory')
+#         if '.directory' in fn_list :
+#             fn_list.remove('.directory')
+#             fn_list.remove('npy')
 
         n_files = len(fn_list)
         print 'n_files', n_files
@@ -145,13 +146,10 @@ class CrackTracer(HasTraits):
                 input_arr = np.load(fname_npy)
             else:
                 input_arr = np.loadtxt(fname,
-                                   skiprows=14,
+                                   skiprows=14,  # not necessary
                                    usecols=[0, 1, 2, 3, 4, 8, 9, 10])
                 np.save(fname_npy, input_arr)
             print 'data loaded in time =', sysclock() - start_t
-
-            # handle the case with unrecognized facets
-            # find the maximum row and node number.
 
             min_shape = min(input_arr.shape[0], min_shape)
 #            print 'min_shape', min_shape
@@ -214,7 +212,7 @@ class CrackTracer(HasTraits):
 #        print 't_idx',t_idx
 
         # construct the mask for elements to be ignored
-        grid_mask_t = np.zeros((n_t, n_x, n_y), dtype=bool)
+        grid_mask_t = np.empty((n_t, n_x, n_y), dtype=bool)
         grid_mask_t[:, :, :] = True
         grid_mask_t[(t_idx.flatten(), x_idx_t.flatten(), y_idx_t.flatten())] = False
 
@@ -276,7 +274,7 @@ class CrackTracer(HasTraits):
 #        grid_mask = np.zeros((n_t, n_x, n_y), dtype = bool)
 #        grid_mask[:, :, :] = True
 #        grid_mask[(slice(None), x_idx, y_idx)] = False
-        grid_mask = np.zeros((n_x, n_y), dtype=bool)
+        grid_mask = np.empty((n_x, n_y), dtype=bool)
         grid_mask[:, :] = True
         grid_mask[(x_idx, y_idx)] = False
 
@@ -340,14 +338,14 @@ class CrackTracer(HasTraits):
         print 'data_t.shape', daf.shape
         return daf
 
-    transform_data = 'true'
+    transform_data = Bool('true')
 
     data_t = Property()
     @cached_property
     def _get_data_t(self):
         '''input data after coordinate transformation'''
 
-        if self.transform_data == 'true':
+        if self.transform_data:
             # Coordinate transformation:
             # derive transformation direction from the first time step (t = 0)
             #
@@ -986,7 +984,11 @@ if __name__ == '__main__':
 
     aramis_dir = os.path.join(simdb.exdata_dir, 'tensile_tests', 'dog_bone', '2012-04-12_TT-12c-6cm-0-TU_SH4', 'ARAMIS')
     home_dir = os.path.expanduser('~')
-    aramis_dir = os.path.join('/media/data/_linux_data/aachen/ARAMIS_data_IMB/01_ARAMIS_Daten/')
+
+    if platform.system() == 'Linux':
+        aramis_dir = os.path.join(r'/media/data/_linux_data/aachen/ARAMIS_data_IMB/01_ARAMIS_Daten/')
+    elif platform.system() == 'Windows':
+        aramis_dir = os.path.join(r'E:\_linux_data\aachen\ARAMIS_data_IMB\01_ARAMIS_Daten')
 
 #-----------------------------------------------------------------------------------
 # select plot typ
@@ -1182,7 +1184,7 @@ if __name__ == '__main__':
                      time_step_size=5,
                      integ_radius=1,
                      w_detect_step= -1,
-                     transform_data='false',
+                     transform_data=False,
                      plot3d_var=plot3d_var,
                      plot_title=plot_title,
                      use_mask=use_mask,
@@ -1199,7 +1201,7 @@ if __name__ == '__main__':
     ct.crack_spacing_avg
     print 'l_x', ct.l_x
 
-    plot_type = '3d-cracks'
+    plot_type = '3d-cracks'  # '2d'
 
     if plot_type == '3d-surf':
         ct.plot3d_surf()

@@ -1,4 +1,5 @@
-
+import os
+os.environ['MPMATH_NOGMPY'] = 'Y'
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
     Constant, Directory, File, Str, Button, Int, List, Interface, implements, \
@@ -443,9 +444,40 @@ class DiffPlot(BasePlot):
                     y_den = (self.data.shape[i] * self.data.number_of_filaments[i] - self.data.shape[i]) * y_fit + self.data.shape[i]
                     y_int = integrate(x, y_den)
 
-                    pos = (self.data.gn_wp[i][-1] - y_int[-1])
+                    from fn_lib import weib_cdf_vect
+                    # from recursion_mp import gn_mp
+                    scale_r = self.data.scale / mp.power(self.data.number_of_filaments[i], MPF_ONE / self.data.shape[i])
+                    p1 = weib_cdf_vect(plsq[0][0], self.data.shape[i], scale_r)
+                    mask = ((x[1:] + x[:-1]) * 0.5) >= plsq[0][0]
+
+                    try:
+                        p2 = y_int[mask][0]
+                        pos = p1 - p2
+                    except:
+                        pos = 0
+
+                    # pos = (self.data.gn_wp[i][-1] - y_int[-1])
+                    # pos = np.exp(self.data.shape[i] * (self.data.number_of_filaments[i] - 1)) - self.data.dn[i]
+
+                    # weib_cdf_vect
+                    # mn = self.data.shape[i] * self.data.number_of_filaments[i]
+                    # pos = mn * (self.data.ln_x[i][0] - np.log(float(self.data.sn[i])))
+                    import sympy as sp
+                    xx, s, m, l, n = sp.symbols('xx s m l n')
+                    s_f = sp.Symbol('s_f')
+                    l_f = sp.Symbol('l_f')
+                    n_fil = self.data.number_of_filaments[i]
+                    scale = self.data.scale
+                    shape = self.data.shape[i]
+                    weib_cdf = 1 - sp.exp(-((xx - l) / s) ** m)
+                    WGn_l = m * xx + m * (n - 1) * (-s_f * sp.exp(l_f / s_f) * sp.exp(xx / s_f) + xx)
+                    sr = scale / n_fil ** (1.0 / shape)
+                    wgn_l = np.array([WGn_l.subs({xx:lx, n:n_fil, l_f:plsq[0][0], s_f:plsq[0][1], m:shape}) for lx in x[x <= -plsq[0][0]]])
+                    pos = -wgn_l[-1] + sp.log(-sp.log(1 - weib_cdf.subs({xx:np.exp(-plsq[0][0]), l:0.0, s:sr, m:shape})))
                     print pos
-                    plt.plot((x[1:] + x[:-1]) * 0.5, y_int + pos, 'r-')
+
+                    plt.plot((x[1:] + x[:-1]) * 0.5, y_int - pos, 'r-')
+                    plt.plot(x[x <= -plsq[0][0]], wgn_l + float(pos), 'r-')
                     plt.show(block=False)
                 if self.p_lim_on:
                     idx = np.where(self.data.gn_cdf[i] <= self.p_lim)[0]

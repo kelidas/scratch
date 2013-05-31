@@ -61,13 +61,13 @@ def gn_mp(x_val, scale, shape, n, x_rat=1):
                 gn = (-1) ** (k + 1) * komb * cdf_k * 1
             else:
                 gn = (-1) ** (k + 1) * komb * cdf_k * gn_mp((n / (n - k)) * x_val, scale, shape, n - k, s.Rational(n, n - k) * x_rat)
-                print 'n =', n, 'k =', k, 'rat =', x_rat
+                # print 'n =', n, 'k =', k, 'rat =', x_rat
                 x_par.append(x_rat)
             res_p = gn
             if x_val not in x_arr:
                 x_arr = np.append(x_arr, x_val)
             param_arr[n - 1, k - 1, np.argwhere(x_arr == x_val)[0][0]] = res_p
-        #print res_p, ' + ',
+        # print res_p, ' + ',
         res += res_p
 
     return res
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     #===============================================================================
     shape = 6.
     scale = 1.
-    n = 10.
+    n = 50.
 
     param_arr = np.zeros((n, n, 1000), dtype=np.float64)
     x_arr = np.array([], dtype=np.float64)
@@ -90,11 +90,11 @@ if __name__ == '__main__':
     #===============================================================================
     # Testing -- one x
     #===============================================================================
-    xx = 1
-    xx = 1  # np.exp(xx)
+    xx = -0.3
+    xx = np.exp(xx)
     #----- Original implementation
     start = sysclock()
-    gn = Gn(xx, scale, shape, n)
+    gn = 0  # Gn(xx, scale, shape, n)
     print 'Gn time =', sysclock() - start
     start = sysclock()
     #----- Modified implementation

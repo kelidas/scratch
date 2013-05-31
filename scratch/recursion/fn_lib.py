@@ -1,3 +1,6 @@
+
+import os
+os.environ['MPMATH_NOGMPY'] = 'Y'
 import mpmath as mp
 import numpy as np
 import platform
@@ -167,11 +170,11 @@ def f_beta(x, a, b, c, d):
     rv = stats.beta(c, d, loc=a, scale=b)
     return rv.cdf(-x)
 
-def f_test(x, a, b, c):
+def f_test(x, a, b, c, d):
     '''CDF of the test distribution reflected across the axis y.
     '''
-    rv = stats.chi2(c, loc=a, scale=b)
-    return rv.cdf(-x)
+    rv = stats.gumbel_r(loc=a, scale=b)
+    return -rv.cdf((x)) + 1
 
 def f_test_wp(x, a, b, c):
     '''CDF in WP of the test distribution reflected across the axis y.
