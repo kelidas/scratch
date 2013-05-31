@@ -76,7 +76,7 @@ class FFnet(HasTraits):
             self.n_inp = self.input.shape[1]
 
     n_hid = List(Long, enter_set=True, auto_set=False)
-    @on_trait_change('input_train')
+    @on_trait_change('input')
     def _n_hid_update(self):
         ndim = self.input.ndim
         if ndim == 1:
@@ -288,11 +288,11 @@ class FFnetView(HasTraits):
 
     input_file = File(entries=10)
     def _input_file_default(self):
-        return os.path.split(__file__)[0]
+        return os.path.split(__file__)[0] + '\\input.txt'
 
     target_file = File(entries=10)
     def _target_file_default(self):
-        return os.path.split(__file__)[0]
+        return os.path.split(__file__)[0] + '\\target.txt'
 
     ffnet = Instance(FFnet, ())
 
@@ -313,6 +313,10 @@ class FFnetView(HasTraits):
         """
         self.message += (string + '\n')  # + self.message)  # [0:1000]
 
+    clear_message = Button('clear message window')
+    def _clear_message_fired(self):
+        self.message = ''
+
     traits_view = View(
                        HSplit(
                               VGroup(
@@ -326,13 +330,15 @@ class FFnetView(HasTraits):
                                     ),
                                 UItem('ffnet@'),
                                 ),
-                              UItem('message', style='custom'),
+                              Group(
+                                    UItem('clear_message'),
+                                    UItem('message', style='simple', editor=CodeEditor()),
+                              ),
                         ),
                        id='ffnet_view.view',
                        width=.8,
                        height=.6,
-                       resizable=True,
-                       scrollable=True
+                       resizable=True
                     )
 
 
