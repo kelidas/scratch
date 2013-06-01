@@ -76,6 +76,9 @@ class FFnet(HasTraits):
             self.n_inp = self.input.shape[1]
 
     n_hid = List(Long, enter_set=True, auto_set=False)
+    def _n_hid_default(self):
+        return [0, 0, 0, 0, 0]
+
     @on_trait_change('input')
     def _n_hid_update(self):
         ndim = self.input.ndim
@@ -131,19 +134,19 @@ class FFnet(HasTraits):
     train_config = Str(str({'nproc': 1,
                          'maxfun': None,
                          # 'bounds': (-100, 100),
-                         'messages': 1}))
+                         'messages': 1}).replace(',', ',\n'))
     @on_trait_change('training_algorithm')
     def _train_config_update(self):
         if self.training_algorithm == 'train_tnc':
             self.train_config = str({'nproc': 1,
                                  'maxfun': None,
                                  # 'bounds': (-100, 100),
-                                 'messages': 1})
+                                 'messages': 1}).replace(',', ',\n')
         elif self.training_algorithm == 'train_momentum':
             self.train_config = str({'eta': 0.2,
                                  'momentum': 0.8,
                                  'maxiter': 10000,
-                                 'disp': True})
+                                 'disp': True}).replace(',', ',\n')
         elif self.training_algorithm == 'train_rprop':
             self.train_config = str({'a': 1.2,
                                  'b': 0.5,
@@ -151,20 +154,20 @@ class FFnet(HasTraits):
                                  'mimax': 50.0,
                                  'xmi': 0.1,
                                  'maxiter':10000,
-                                 'disp':True})
+                                 'disp':True}).replace(',', ',\n')
         elif self.training_algorithm == 'train_cg':
             self.train_config = str({'maxiter': 10000,
-                                 'disp': True})
+                                 'disp': True}).replace(',', ',\n')
         elif self.training_algorithm == 'train_bfgs':
             self.train_config = str({'maxfun': 15000,
                                  # 'bounds': (-100, 100),
-                                 'iprint':0})
+                                 'iprint':0}).replace(',', ',\n')
         elif self.training_algorithm == 'train_genetic':
             self.train_config = str({'lower':-25,
                                  'upper': 25,
                                  'individuals': 20,
                                  'generations': 500,
-                                 'verbosity': 1})
+                                 'verbosity': 1}).replace(',', ',\n')
 
     ffnet_train = Button('train / continue training')
     def _ffnet_train_fired(self):
@@ -217,14 +220,15 @@ class FFnet(HasTraits):
         self.display_message(self.net)
 
     traits_view = View(
-                       Item('mode', style='simple'),  # , editor=EnumEditor(values=mode.values, cols=4)
+                       Item('mode', style='custom', editor=EnumEditor(values=mode.values, cols=4)),
                        HGroup(
                               Item('net_file', springy=True),
                               UItem('ffnet_save'),
                               UItem('ffnet_load'),
-                              visible_when='mode != "create"',
+                              enabled_when='mode != "create"',
                        ),
                        '_',
+                       Tabbed(
                        Group(
                            Item('net_architecture',
                                 tooltip=('imlgraph - multilayer architecture with independent outputs' +
@@ -234,40 +238,35 @@ class FFnet(HasTraits):
                            Item('bias_enabled'),
                            Item('n_inp', style='readonly'),
                            '_',
-                            Item('n_hid', style='custom'),
+                            Item('n_hid', style='custom', height=150),
                             '_',
                             Item('n_tar', style='readonly'),
-                            VGroup(
-                                  UItem('create_net'),
-                                  UItem('ffnet_plot'),
-                                  ),
+                            Group(
+                                UItem('create_net'),
+                                UItem('ffnet_plot'),
+                                ),
                             label='ffnet create',
                             visible_when='mode == "create"',
-                            dock='tab',
                             show_border=True,
                             id='ffnet.configuration',
                             ),
                        Group(
                              Item('training_algorithm'),
-                             HGroup(
-                                 Item('train_config', style='custom',
-                                      editor=TextEditor(multi_line=True), springy=True),
-                                 UItem('help'),
-                             ),
-                             VGroup(
+                             Item('train_config', springy=True, editor=CodeEditor(show_line_numbers=False)),
+                             UItem('help'),
+                             '_',
+                             Group(
                                    UItem('ffnet_train'),
-                                   ),
+                             ),
                              label='training configuration',
                              visible_when='mode == "train"',
-                             dock='tab',
                              show_border=True,
-                             id='ffnet.training'
+                             id='ffnet.training',
                              ),
                         Group(
                               UItem('ffnet_test'),
                              label='test',
                              visible_when='mode == "test"',
-                             dock='tab',
                              show_border=True,
                              id='ffnet.test'
                              ),
@@ -275,10 +274,10 @@ class FFnet(HasTraits):
                              UItem('ffnet_call'),
                              label='ffnet call',
                              visible_when='mode == "call"',
-                             dock='tab',
                              show_border=True,
                              id='ffnet.call'
                              ),
+                              ),
                        id='ffnet.view',
                        resizable=True,
                         )
@@ -286,15 +285,9 @@ class FFnet(HasTraits):
 
 class FFnetView(HasTraits):
 
-    input_dir = Directory(os.path.split(__file__)[0])
-
     input_file = File(entries=10)
-    def _input_file_default(self):
-        return os.path.join(self.input_dir, 'input.txt')
 
     target_file = File(entries=10)
-    def _target_file_default(self):
-        return os.path.join(self.input_dir, 'target.txt')
 
     ffnet = Instance(FFnet, ())
 
@@ -321,20 +314,20 @@ class FFnetView(HasTraits):
 
     traits_view = View(
                        HSplit(
-                              VGroup(
-                               Group(
-                                    Item('input_file', id='ffnet_view.infile'),
-                                    Item('target_file', id='ffnet_view.tarfile'),
-                                    UItem('load_data'),
-                                    show_border=True,
-                                    label='Load data',
-                                    id='ffnet_view.load',
-                                    ),
-                                UItem('ffnet@'),
+                            Group(
+                           Group(
+                                Item('input_file', id='ffnet_view.infile'),
+                                Item('target_file', id='ffnet_view.tarfile'),
+                                UItem('load_data'),
+                                show_border=True,
+                                label='Load data',
+                                id='ffnet_view.load',
                                 ),
+                            UItem('ffnet@#'),
+                            ),
                               Group(
                                     UItem('clear_message'),
-                                    UItem('message', style='simple', editor=CodeEditor()),
+                                    UItem('message', editor=CodeEditor()),
                               ),
                         ),
                        id='ffnet_view.view',
