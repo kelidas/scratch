@@ -14,7 +14,7 @@ class SMS_Sender(HasTraits):
 
     confirmation = Bool(True)
 
-    password = Password(minlen=8, maxlen=8)
+    password = Password()  # minlen=8, maxlen=8)
 
     send = Button('send')
     def _send_fired(self):
@@ -34,22 +34,22 @@ class SMS_Sender(HasTraits):
         br.form['password'] = self.password
 
         resp = br.submit()
-        #print resp.get_data()
+        # print resp.get_data()
 
         resp = br.open("https://sms.client.tmo.cz/closed.jsp")
         br.select_form(nr=1)
 
-        #print br.form
-        #help(br.form)
+        # print br.form
+        # help(br.form)
 
-        br.form['recipients'] = self.phone_number#'736639077'#'737451193' #'605348558'
+        br.form['recipients'] = self.phone_number  # '736639077'#'737451193' #'605348558'
         br.form['text'] = self.message
 
         br.form.find_control("confirmation").get("1").selected = self.confirmation
 
         resp = br.submit()
 
-        #logout
+        # logout
         resp = br.follow_link(url_regex='logout')
 
         br.close()
@@ -74,3 +74,4 @@ class SMS_Sender(HasTraits):
 if __name__ == '__main__':
     sms = SMS_Sender()
     sms.configure_traits()
+
