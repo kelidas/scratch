@@ -1,5 +1,4 @@
-import os
-os.environ['MPMATH_NOGMPY'] = 'Y'
+
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
     Constant, Directory, File, Str, Button, Int, List, Interface, implements, \

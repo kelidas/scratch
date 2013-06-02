@@ -1,3 +1,25 @@
+
+import numpy as np
+import pickle
+import os
+# os.environ['MPMATH_NOGMPY'] = 'Y'
+import mpmath as mp
+mp.mp.dps = 1000
+
+data = np.load(r'data.npy')
+print data
+
+pkl_file = open('data.pkl', 'rb')
+data = pickle.load(pkl_file)
+pkl_file.close()
+print data
+
+
+
+
+
+quit()
+
 from traits.etsconfig.api import ETSConfig
 ETSConfig.toolkit = 'wx'
 
@@ -45,9 +67,9 @@ class a(HasTraits):
     tl = PosFloat
 
 
+
 aa = a()
 aa.configure_traits()
-print aa.tl
 
 
 

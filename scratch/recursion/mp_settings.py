@@ -1,5 +1,5 @@
-import os
-os.environ['MPMATH_NOGMPY'] = 'Y'
+# import os
+# os.environ['MPMATH_NOGMPY'] = 'Y'
 
 import mpmath as mp
 

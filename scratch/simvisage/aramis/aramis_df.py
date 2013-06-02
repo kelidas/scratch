@@ -834,6 +834,12 @@ class CrackTracer(HasTraits):
         vmax = self.plot3d_var_[1]
         m.points3d(z_arr, self.x_arr, self.y_arr, plot3d_var, mode='cube', colormap="blue-red", scale_mode='scalar', vmax=vmax)
 
+        # get mayavi engine
+        #
+        engine = m.get_engine()
+        scene = engine.scenes[0]
+        scene.scene.disable_render = True
+
         # plot scalarbar
         #
         m.scalarbar(orientation='horizontal', title=self.plot3d_var)
@@ -847,10 +853,6 @@ class CrackTracer(HasTraits):
         #
         if plot_title == 'true':
             m.title(os.path.join(self.data_dir, self.basename))
-
-        # get mayavi engine
-        #
-        engine = m.get_engine()
 
         # scale glyphs
         #
@@ -895,7 +897,7 @@ class CrackTracer(HasTraits):
         module_manager.scalar_lut_manager.scalar_bar_representation.moving = 0
         module_manager.scalar_lut_manager.scalar_bar_representation.position = np.array([ 0.53971972, 0.19931035])
         module_manager.scalar_lut_manager.scalar_bar_representation.maximum_size = np.array([100000, 100000])
-
+        scene.scene.disable_render = False
         m.show()
 
 
