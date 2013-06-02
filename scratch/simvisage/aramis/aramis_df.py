@@ -835,6 +835,12 @@ class CrackTracer(HasTraits):
         vmax = self.plot3d_var_[1]
         m.points3d(z_arr, self.x_arr, self.y_arr, plot3d_var, mode='cube', colormap="blue-red", scale_mode='scalar', vmax=vmax)
 
+        # get mayavi engine
+        #
+        engine = m.get_engine()
+        scene = engine.scenes[0]
+        scene.scene.disable_render = True
+
         # plot scalarbar
         #
         m.scalarbar(orientation='horizontal', title=self.plot3d_var)
@@ -848,10 +854,6 @@ class CrackTracer(HasTraits):
         #
         if plot_title == 'true':
             m.title(os.path.join(self.data_dir, self.basename))
-
-        # get mayavi engine
-        #
-        engine = m.get_engine()
 
         # scale glyphs
         #
@@ -876,7 +878,6 @@ class CrackTracer(HasTraits):
 
         # rotate scene
         #
-        scene = engine.scenes[0]
         scene.scene.parallel_projection = False
         scene.scene.camera.position = [616.49832063929375, 638.29074243238438, 514.06081220962164]
         scene.scene.camera.focal_point = [11.259753942489624, 11.990119934082031, 9.7502956390380859]
@@ -895,7 +896,7 @@ class CrackTracer(HasTraits):
         module_manager.scalar_lut_manager.scalar_bar_representation.moving = 0
         module_manager.scalar_lut_manager.scalar_bar_representation.position = np.array([ 0.53971972, 0.19931035])
         module_manager.scalar_lut_manager.scalar_bar_representation.maximum_size = np.array([100000, 100000])
-
+        scene.scene.disable_render = False
         m.show()
 
 
@@ -1180,9 +1181,9 @@ if __name__ == '__main__':
 #                     )
 #
     ct = CrackTracer(data_dir=os.path.join(aramis_dir, 'Probe-1-Ausschnitt-Xf15a1-Yf5a4'),
-                     evaluated_time_step=458,
+                     evaluated_time_step=400,
                      time_step_size=5,
-                     integ_radius=1,
+                     integ_radius=11,
                      w_detect_step= -1,
                      transform_data=False,
                      plot3d_var=plot3d_var,
