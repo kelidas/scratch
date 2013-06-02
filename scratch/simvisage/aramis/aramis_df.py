@@ -814,7 +814,6 @@ class CrackTracer(HasTraits):
     glyph_z_length_cr = Float(0.120)
 
     def plot3d_cracks(self):
-
         # set background color to white and forground color to black
         #
         m.figure(fgcolor=(0, 0, 0), bgcolor=(1, 1, 1), size=(900, 600))
@@ -868,8 +867,9 @@ class CrackTracer(HasTraits):
 #        plot3d_var = getattr(self, 'd_ux_w')
         plot3d_var = getattr(self, 'crack_field_w')
         m.points3d(z_arr, self.x_arr, self.y_arr, plot3d_var, mode='cube', colormap="blue-red", scale_mode='none', vmax=vmax)
+        # m.surf(z_arr, self.x_arr, self.y_arr, colormap="blue-red")
         glyph1 = engine.scenes[0].children[1].children[0].children[0]
-        # switch order of the scale_factor corresponding to the order of the
+#         # switch order of the scale_factor corresponding to the order of the
         glyph1.glyph.glyph_source.glyph_source.x_length = self.glyph_z_length
         glyph1.glyph.glyph_source.glyph_source.y_length = self.glyph_x_length
         glyph1.glyph.glyph_source.glyph_source.z_length = self.glyph_y_length
@@ -877,7 +877,7 @@ class CrackTracer(HasTraits):
         # rotate scene
         #
         scene = engine.scenes[0]
-        scene.scene.parallel_projection = False
+        scene.scene.parallel_projection = True
         scene.scene.camera.position = [616.49832063929375, 638.29074243238438, 514.06081220962164]
         scene.scene.camera.focal_point = [11.259753942489624, 11.990119934082031, 9.7502956390380859]
         scene.scene.camera.view_angle = 30.0
@@ -1180,9 +1180,9 @@ if __name__ == '__main__':
 #                     )
 #
     ct = CrackTracer(data_dir=os.path.join(aramis_dir, 'Probe-1-Ausschnitt-Xf15a1-Yf5a4'),
-                     evaluated_time_step=458,
+                     evaluated_time_step=400,
                      time_step_size=5,
-                     integ_radius=1,
+                     integ_radius=11,
                      w_detect_step= -1,
                      transform_data=False,
                      plot3d_var=plot3d_var,
