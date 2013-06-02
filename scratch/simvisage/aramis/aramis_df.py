@@ -818,6 +818,12 @@ class CrackTracer(HasTraits):
         #
         m.figure(fgcolor=(0, 0, 0), bgcolor=(1, 1, 1), size=(900, 600))
 
+        # get mayavi engine
+        #
+        engine = m.get_engine()
+        scene = engine.scenes[0]
+        scene.scene.disable_render = True
+
         #-----------------------------------
         # plot crack width ('crack_field_w')
         #-----------------------------------
@@ -833,12 +839,6 @@ class CrackTracer(HasTraits):
 #        plot3d_var = getattr(self, 'crack_field_w')
         vmax = self.plot3d_var_[1]
         m.points3d(z_arr, self.x_arr, self.y_arr, plot3d_var, mode='cube', colormap="blue-red", scale_mode='scalar', vmax=vmax)
-
-        # get mayavi engine
-        #
-        engine = m.get_engine()
-        scene = engine.scenes[0]
-        scene.scene.disable_render = True
 
         # plot scalarbar
         #
