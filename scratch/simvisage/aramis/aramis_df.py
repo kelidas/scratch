@@ -5,7 +5,8 @@ Created on Apr 25, 2012
 '''
 
 from etsproxy.traits.api import \
-    HasTraits, Float, Property, cached_property, Int, Directory, Array, Bool, Str, Trait
+    HasTraits, Float, Property, cached_property, Int, Directory, Array, Bool, \
+    Str, Trait, List
 
 import numpy as np
 import numpy.ma as ma
@@ -19,6 +20,7 @@ import os
 import os.path
 import pylab as p
 import string
+import re
 
 import platform
 import time
@@ -97,6 +99,22 @@ class CrackTracer(HasTraits):
                             'dog_bone', '2012-04-12_TT-12c-6cm-0-TU_SH4', 'ARAMIS',
                             'Probe-1-Ausschnitt-Xf15a1-Yf5a4')
 
+    file_list = Property(List(Str), depends_on='file_name')
+    @cached_property
+    def _get_file_list(self):
+        file_list = [v for v in os.listdir(self.data_dir) if os.path.splitext(v)[1] == ".txt"]
+        return file_list
+
+    step_list = Property(List(Int), depends_on='file_list')
+    @cached_property
+    def _get_step_list(self):
+        step_list = []
+        pat = r'.*-(?P<step>\d+).txt'
+        for f in self.file_list:
+            m = re.match(pat, f)
+            step_list.append(m.groupdict()['step'])
+        return step_list
+
     input_list = Property(Array(float), depends_on='file_name')
     @cached_property
     def _get_input_list(self):
@@ -106,6 +124,7 @@ class CrackTracer(HasTraits):
         # remove hidden directory files from the file name list
 #         if '.directory' in fn_list :
 #             fn_list.remove('.directory')
+#         if 'npy' in fn_list :
 #             fn_list.remove('npy')
 
         n_files = len(fn_list)
@@ -147,7 +166,7 @@ class CrackTracer(HasTraits):
             else:
                 input_arr = np.loadtxt(fname,
                                    skiprows=14,  # not necessary
-                                   usecols=[0, 1, 2, 3, 4, 8, 9, 10])
+                                   usecols=[0, 1, 2, 3, 4, 8, 9, 10])  # [0, 1, 2, 3, 4, 8, 9, 10])
                 np.save(fname_npy, input_arr)
             print 'data loaded in time =', sysclock() - start_t
 
@@ -673,7 +692,11 @@ class CrackTracer(HasTraits):
                color='magenta', linewidth=2)
 
         p.subplot(2, 2, 4)
-        p.hist(self.crack_arr_w, bins=100)
+        p.hist(self.crack_arr_w, bins=40, normed=True)
+        p.twinx()
+        p.hist(self.crack_arr_w, normed=True,
+               histtype='step', color='black',
+               cumulative=True, bins=40)
 
         # figure title
         # uses directory path by default
@@ -844,10 +867,6 @@ class CrackTracer(HasTraits):
         #
         m.scalarbar(orientation='horizontal', title=self.plot3d_var)
 
-        # plot axes
-        #
-#        m.axes()
-
         # figure title
         # uses directory path by default
         #
@@ -880,13 +899,13 @@ class CrackTracer(HasTraits):
         #
         scene = engine.scenes[0]
         scene.scene.parallel_projection = True
-        scene.scene.camera.position = [616.49832063929375, 638.29074243238438, 514.06081220962164]
-        scene.scene.camera.focal_point = [11.259753942489624, 11.990119934082031, 9.7502956390380859]
-        scene.scene.camera.view_angle = 30.0
-        scene.scene.camera.view_up = [0.79246046934594205, -0.54446721176015089, -0.27488517574095594]
-        scene.scene.camera.clipping_range = [595.49259262137014, 1526.1362976999562]
-        scene.scene.camera.compute_view_plane_normal()
-        scene.scene.render()
+        m.view(0, 90)
+#         scene.scene.camera.position = [616.49832063929375, 638.29074243238438, 514.06081220962164]
+#         scene.scene.camera.focal_point = [11.259753942489624, 11.990119934082031, 9.7502956390380859]
+#         scene.scene.camera.view_angle = 30.0
+#         scene.scene.camera.view_up = [0.79246046934594205, -0.54446721176015089, -0.27488517574095594]
+#         scene.scene.camera.clipping_range = [595.49259262137014, 1526.1362976999562]
+#         scene.scene.camera.compute_view_plane_normal()
 
         glyph.glyph.glyph_source.glyph_position = 'head'
         glyph.glyph.glyph_source.glyph_position = 'tail'
@@ -898,6 +917,10 @@ class CrackTracer(HasTraits):
         module_manager.scalar_lut_manager.scalar_bar_representation.position = np.array([ 0.53971972, 0.19931035])
         module_manager.scalar_lut_manager.scalar_bar_representation.maximum_size = np.array([100000, 100000])
         scene.scene.disable_render = False
+        # plot axes
+        #
+        m.axes()
+
         m.show()
 
 
@@ -1181,7 +1204,7 @@ if __name__ == '__main__':
 #                     glyph_y_length = 0.2
 #                     )
 #
-    ct = CrackTracer(data_dir=os.path.join(aramis_dir, 'Probe-1-Ausschnitt-Xf15a1-Yf5a4'),
+    ct = CrackTracer(data_dir=os.path.join(aramis_dir, 'Probe-1-Ausschnitt-Xf15a1-Yf5a4'),  # os.path.join(aramis_dir, 'ARAMIS-Daten-f19a15', 'V3'),
                      evaluated_time_step=400,
                      time_step_size=5,
                      integ_radius=11,
@@ -1203,7 +1226,7 @@ if __name__ == '__main__':
     ct.crack_spacing_avg
     print 'l_x', ct.l_x
 
-    plot_type = '3d-cracks'  # '2d'
+    plot_type = '2d'
 
     if plot_type == '3d-surf':
         ct.plot3d_surf()
