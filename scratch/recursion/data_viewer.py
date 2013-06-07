@@ -444,7 +444,7 @@ class DiffPlot(BasePlot):
                     axes.plot(x, y_fit, 'r-')
 
                     if self.plot_special:
-                        plt.figure(figsize=(16, 9), dpi=100)
+                        plt.figure(figsize=(12, 7), dpi=100)
                         plt.subplot(221)
                         plt.title('weibull plot')
                         plt.plot(self.data.ln_x[i], self.data.gn_wp[i], 'b-', label='gn')
