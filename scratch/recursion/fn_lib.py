@@ -49,6 +49,14 @@ def weibul_plot(g):
 
 weibul_plot_vect = np.frompyfunc(weibul_plot, 1, 1)
 
+def antiweibul_plot(g):
+    '''
+    Transform data for Weibull plot
+    '''
+    return MPF_ONE - mp.exp(-mp.exp(g))
+
+antiweibul_plot_vect = np.frompyfunc(antiweibul_plot, 1, 1)
+
 def sn_mp(dn, scale, shape, n):
     '''Scale parameter for the left asymptote of G_n
     '''
@@ -188,6 +196,7 @@ def fit_data_leastsq(f, x, y, p0=None):
     if p0 == None:
         n_arg = len(inspect.getargspec(f).args)
         p0 = np.ones(n_arg - 1)
+        p0[0] = 0.5
 
     def residuals(p, y, x):
         err = y - f(x, *p)

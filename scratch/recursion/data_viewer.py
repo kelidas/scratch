@@ -22,6 +22,7 @@ import numpy as np
 import platform
 import time
 from either_type import EitherType
+from scratch.recursion.fn_lib import weibul_plot_vect
 if platform.system() == 'Linux':
     sysclock = time.time
 elif platform.system() == 'Windows':
@@ -36,7 +37,8 @@ from threading import Thread
 from scipy import stats
 from fn_lib import fit_data_leastsq, f_gev, f_gumb, f_weib, f_norm, f_pareto, \
                 f_lognorm, f_lomax, f_powlognorm, f_pownorm, f_fatiguelife, f_test, \
-                f_beta, f_test_wp, f_weib_m1, f_weib_ms1, integrate
+                f_beta, f_test_wp, f_weib_m1, f_weib_ms1, integrate, weib_cdf_vect, \
+                antiweibul_plot_vect, differentiate
 
 # ===============================================================================
 # Data Viewer
@@ -402,7 +404,9 @@ class DiffPlot(BasePlot):
     xlim_left = Float(-3.0)
     xlim_right = Float(0.0)
 
-    fit_funcion = Trait('gev', {'gev':f_gev,
+    plot_special = Bool(False)
+
+    fit_funcion = Trait('weibull', {'gev':f_gev,
                                 'gumbel':f_gumb,
                                 'weibull':f_weib,
                                 'normal':f_norm,
@@ -438,46 +442,55 @@ class DiffPlot(BasePlot):
                     y_fit, plsq = fit_data_leastsq(self.fit_funcion_, x, y, p0=None)
                     print 'm =', self.data.shape[i], ', n =', self.data.number_of_filaments[i], plsq
                     axes.plot(x, y_fit, 'r-')
-                    plt.plot(self.data.ln_x[i], self.data.gn_wp[i])
-                    plt.plot(self.data.ln_x[i], self.data.norm_wp[i])
-                    y_den = (self.data.shape[i] * self.data.number_of_filaments[i] - self.data.shape[i]) * y_fit + self.data.shape[i]
-                    y_int = integrate(x, y_den)
 
-                    from fn_lib import weib_cdf_vect
-                    # from recursion_mp import gn_mp
-                    scale_r = self.data.scale / mp.power(self.data.number_of_filaments[i], MPF_ONE / self.data.shape[i])
-                    p1 = weib_cdf_vect(plsq[0][0], self.data.shape[i], scale_r)
-                    mask = ((x[1:] + x[:-1]) * 0.5) >= plsq[0][0]
+                    if self.plot_special:
+                        plt.figure(figsize=(16, 9), dpi=100)
+                        plt.subplot(221)
+                        plt.title('weibull plot')
+                        plt.plot(self.data.ln_x[i], self.data.gn_wp[i], 'b-', label='gn')
+                        plt.plot(self.data.ln_x[i], self.data.norm_wp[i], 'g-', label='norm')
+                        y_den = (self.data.shape[i] * self.data.number_of_filaments[i] - self.data.shape[i]) * y_fit + self.data.shape[i]
+                        y_int = integrate(x, y_den)
+                        x_int = (x[1:] + x[:-1]) * 0.5
+                        pos = (self.data.gn_wp[i][-3] - y_int[-1])
+                        plt.plot(x_int, y_int + pos, 'r-', label='fit')
+                        plt.legend(loc='best')
 
-                    try:
-                        p2 = y_int[mask][0]
-                        pos = p1 - p2
-                    except:
-                        pos = 0
+                        plt.subplot(222)
+                        plt.title('weibull plot of diff plot')
+                        plt.plot(np.log(-x - plsq[0][0]), weibul_plot_vect(y_fit), 'r-',
+                                 label='fit')
+                        plt.plot(np.log(-x - plsq[0][0]), weibul_plot_vect(y), 'b-',
+                                 label='gn')
+                        plt.legend(loc='best')
 
-                    # pos = (self.data.gn_wp[i][-1] - y_int[-1])
-                    # pos = np.exp(self.data.shape[i] * (self.data.number_of_filaments[i] - 1)) - self.data.dn[i]
+                        plt.subplot(223)
+                        plt.title('CDF')
+                        plt.plot(self.data.x[i], self.data.gn_cdf[i], 'b-',
+                                 label='gn')
+                        plt.plot(self.data.x[i], self.data.norm_cdf[i], 'k--',
+                                 label='norm')
+                        # plt.plot(self.data.x[i], antiweibul_plot_vect(self.data.gn_wp[i]))
+                        plt.plot(np.exp(x_int), antiweibul_plot_vect(y_int + pos), 'r-',
+                                 label='fit')
+                        plt.legend(loc='best')
 
-                    # weib_cdf_vect
-                    # mn = self.data.shape[i] * self.data.number_of_filaments[i]
-                    # pos = mn * (self.data.ln_x[i][0] - np.log(float(self.data.sn[i])))
-                    import sympy as sp
-                    xx, s, m, l, n = sp.symbols('xx s m l n')
-                    s_f = sp.Symbol('s_f')
-                    l_f = sp.Symbol('l_f')
-                    n_fil = self.data.number_of_filaments[i]
-                    scale = self.data.scale
-                    shape = self.data.shape[i]
-                    weib_cdf = 1 - sp.exp(-((xx - l) / s) ** m)
-                    WGn_l = m * xx + m * (n - 1) * (-s_f * sp.exp(l_f / s_f) * sp.exp(xx / s_f) + xx)
-                    sr = scale / n_fil ** (1.0 / shape)
-                    wgn_l = np.array([WGn_l.subs({xx:lx, n:n_fil, l_f:plsq[0][0], s_f:plsq[0][1], m:shape}) for lx in x[x <= -plsq[0][0]]])
-                    pos = -wgn_l[-1] + sp.log(-sp.log(1 - weib_cdf.subs({xx:np.exp(-plsq[0][0]), l:0.0, s:sr, m:shape})))
-                    print pos
+                        plt.subplot(224)
+                        plt.title('PDF')
+                        x = self.data.x[i].astype(float)
+                        plt.plot((x[1:] + x[:-1]) * 0.5,
+                                 differentiate(x, self.data.gn_cdf[i].astype(float)),
+                                 'b-', label='gn')
+                        plt.plot((x[1:] + x[:-1]) * 0.5,
+                                 differentiate(x, self.data.norm_cdf[i].astype(float)),
+                                 'k--', label='norm')
+                        plt.plot((np.exp(x_int)[1:] + np.exp(x_int)[:-1]) * 0.5,
+                                 differentiate(np.exp(x_int), antiweibul_plot_vect(y_int + pos)),
+                                 'r-', label='fit')
+                        plt.legend(loc='best')
 
-                    plt.plot((x[1:] + x[:-1]) * 0.5, y_int - pos, 'r-')
-                    plt.plot(x[x <= -plsq[0][0]], wgn_l + float(pos), 'r-')
-                    plt.show(block=False)
+                        plt.tight_layout()
+                        plt.show(block=False)
                 if self.p_lim_on:
                     idx = np.where(self.data.gn_cdf[i] <= self.p_lim)[0]
                     if len(idx) != 0:
@@ -510,6 +523,7 @@ class DiffPlot(BasePlot):
                        Group(
                              Item('fit_data_on', enabled_when='gn_on'),
                              Item('fit_funcion', enabled_when='fit_data_on'),
+                             Item('plot_special', enabled_when='fit_data_on'),
                            HGroup(
                                 Item('xlim_on', enabled_when='fit_data_on'),
                                 Item('xlim_left', enabled_when='xlim_on'),
@@ -661,6 +675,70 @@ class PDFPlot(BasePlot):
                        )
 
 
+class CDFPlot(BasePlot):
+    name = 'CDF plot'
+    gn_on = Bool(True)
+    norm_on = Bool(True)
+    weibl_on = Bool(False)
+    weibr_on = Bool(False)
+
+    p_lim_on = Bool(False)
+    p_lim = Float(1e-15)
+
+    def _draw_fired(self):
+        axes = self.figure.axes[0]
+        if self.clear_on:
+            axes.clear()
+        axes.set_title(self.name)
+        for i in self.plot_selector.plot_list:
+            if self.gn_on:
+                x = self.data.x[i]
+                y = self.data.gn_cdf[i]
+                axes.plot(x, y, 'k-')
+                if self.p_lim_on:
+                    idx = np.where(self.data.gn_cdf[i] <= self.p_lim)[0]
+                    if len(idx) != 0:
+                        idx = idx[-1]
+                        x1 = x[idx]
+                        y1 = y[idx]
+                        axes.plot(x1, y1, 'ko')
+            if self.norm_on:
+                x = self.data.x[i]
+                y = self.data.norm_cdf[i]
+                axes.plot(x, y, 'b-')
+            if self.weibl_on:
+                x = self.data.x[i]
+                y = self.data.weibl_cdf[i]
+                axes.plot(x, y, 'g-')
+            if self.weibr_on:
+                x = self.data.x[i]
+                y = self.data.weibr_cdf[i]
+                axes.plot(x, y, 'g-')
+
+        self.figure.canvas.draw()
+
+    traits_view = View(
+                       'clear_on',
+                       Group(
+                             'gn_on',
+                             'norm_on',
+                             'weibl_on',
+                             'weibr_on',
+                             show_border=True,
+                             label='data select',
+                             ),
+                       HGroup(
+                              Item('p_lim_on', show_label=False),
+                              Item('p_lim', enabled_when='p_lim_on'),
+                              ),
+                       HGroup(
+                              Item('draw', show_label=False, springy=True),
+                              Item('delete_last_one', show_label=False, springy=True),
+                       ),
+                       id='plot.main'
+                       )
+
+
 class LoadThread(Thread):
 
     wants_abort = False
@@ -742,12 +820,14 @@ class ControlPanel(HasTraits):
 
     plot = EitherType(names=['wp plot',
                              'pdf plot',
+                             'cdf_plot',
                              'diff_plot',
                              'tangent parameter plot',
                              'base',
                              ],
                       klasses=[WPPlot,
                                PDFPlot,
+                               CDFPlot,
                                DiffPlot,
                                TangentParameterPlot,
                                BasePlot,
