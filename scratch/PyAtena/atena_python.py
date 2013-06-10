@@ -219,7 +219,10 @@ class TaskSelector(HasTraits):
     '''Load available tasks to list
     '''
     def _load_task_lst_fired(self):
-        dirs = filter(os.path.isdir, os.listdir(self.project_info.project_dir))
+        dirs = []
+        for d in os.listdir(self.project_info.project_dir):
+            if os.path.isdir(os.path.join(self.project_info.project_dir, d)):
+                dirs.append(d)
         task_lst = filter(re.compile(self.project_info.task_name_regex).match, dirs)
         self.task_lst = task_lst
 
@@ -231,8 +234,8 @@ class TaskSelector(HasTraits):
     '''List of numbers of tasks to be evaluated
     '''
     @cached_property
-    def _get_task_nums(self):
-        task_nums = [self.project_info.task_name_regex.match(task).groups([0])
+    def _get_evaluated_tasks_nums(self):
+        task_nums = [re.compile(self.project_info.task_name_regex).match(task).groups([0])
                      for task in self.evaluated_tasks]
         return task_nums
 
@@ -291,7 +294,7 @@ class Solver(HasTraits):
                 cmd_lst.append(ATENA_CMD.format(DIR, INP, OUT, MSG, ERR))
             self.__execute(cmd_lst,
                            self.task_selector.evaluated_tasks,
-                           self.task_selector.evaluated_tasks_nums)
+                           self.task_selector.evaluated_tasks_nums, None)
 
     add_config_file = File(filter=['Atena input (*.inp)|*.inp', 'All files (*.*)|*.*'])
     '''Add file with additional configuration (solving method parameters,
@@ -355,7 +358,7 @@ class Solver(HasTraits):
     def _continue_evalution_fired(self):
         self.__execute(self.cmd_lst_continue,
                        self.task_selector.evaluated_tasks,
-                       self.task_selector.evaluated_tasks_nums)
+                       self.task_selector.evaluated_tasks_nums, None)
 
     def __execute(self, cmd_lst, task_lst, task_num_lst, **kwds):
         '''Execute tasks with multiprocessing.Pool
@@ -384,8 +387,9 @@ class Solver(HasTraits):
 
 
 def run_cmd(cmd_lst, task_lst, task_num_lst, **kwds):
-    p = subprocess.Popen(cmd_lst)
-    p.communicate()
+    #p = subprocess.Popen(['dir'])  #cmd_lst)
+    #p.communicate()
+    subprocess.call('dir')
 
 
 class Postprocessor(HasTraits):
@@ -458,6 +462,8 @@ LOAD CASE  1 * 1.0000000  4 * 0.04875  65535 * 1.0000000
 EXECUTE
 STORE "results\result.{0:03d}"    
 '''
-    pyatena = PyAtena()  # project_info=project_info)  # preprocessor=preprocessor)
+    project_info = ProjectInfo(project_dir=r'C:\Users\Martina\Desktop\test_novamorava',
+                               input_file=r'C:\Users\Martina\Desktop\test_novamorava\input_final.inp')
+    pyatena = PyAtena(project_info=project_info)  # preprocessor=preprocessor)
     pyatena.configure_traits()
 
