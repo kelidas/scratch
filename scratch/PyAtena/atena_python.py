@@ -212,16 +212,24 @@ class TaskSelector(HasTraits):
     project_info = Instance(ProjectInfo)
 
     task_lst = List
+    '''List of task available in project directory to be evaluated 
+    '''
 
     load_task_lst = Button
+    '''Load available tasks to list
+    '''
     def _load_task_lst_fired(self):
         dirs = filter(os.path.isdir, os.listdir(self.project_info.project_dir))
         task_lst = filter(re.compile(self.project_info.task_name_regex).match, dirs)
         self.task_lst = task_lst
 
     evaluated_tasks = List
+    '''List of tasks to be evaluated
+    '''
 
     evaluated_tasks_nums = Property(List, depends_on='evaluated_tasks')
+    '''List of numbers of tasks to be evaluated
+    '''
     @cached_property
     def _get_task_nums(self):
         task_nums = [self.project_info.task_name_regex.match(task).groups([0])
@@ -249,7 +257,9 @@ class Solver(HasTraits):
 
     task_selector = Instance(TaskSelector)
 
-    last_steps = Property(Int, depends_on='task_selector.evaluated_tasks')
+    last_steps = Property(List, depends_on='task_selector.evaluated_tasks')
+    '''List of last steps to continue evaluation
+    '''
     @cached_property
     def _get_last_steps(self):
         last_steps = []
@@ -262,39 +272,56 @@ class Solver(HasTraits):
         return last_steps
 
     cpu_num = Int
+    '''Number of CPUs but one that are available for execution 
+    '''
     def _cpu_num_default(self):
         return multiprocessing.cpu_count() - 1
 
-    evaluate = Button
+    evaluate = Button('Execute/re-execute')
     def _evaluate_fired(self):
-        cmd_lst = []
-        for task in self.task_selector.evaluated_tasks:
-            DIR = os.path.join(self.project_info.project_dir, task)
-            prepare_dir(os.path.join(DIR, 'results'))
-            INP = task + '.inp'
-            OUT = task + '.out'
-            MSG = task + '.msg'
-            ERR = task + '.err'
-            cmd_lst.append(ATENA_CMD.format(DIR, INP, OUT, MSG, ERR))
-        self.__execute(cmd_lst,
-                       self.task_selector.evaluated_tasks,
-                       self.task_selector.evaluated_tasks_nums)
+        if confirm(None, 'All stored results will be deleted!') == YES:
+            cmd_lst = []
+            for task in self.task_selector.evaluated_tasks:
+                DIR = os.path.join(self.project_info.project_dir, task)
+                prepare_dir(os.path.join(DIR, 'results'))
+                INP = task + '.inp'
+                OUT = task + '.out'
+                MSG = task + '.msg'
+                ERR = task + '.err'
+                cmd_lst.append(ATENA_CMD.format(DIR, INP, OUT, MSG, ERR))
+            self.__execute(cmd_lst,
+                           self.task_selector.evaluated_tasks,
+                           self.task_selector.evaluated_tasks_nums)
 
     add_config_file = File
+    '''Add file with additional configuration (solving method parameters,
+    new load cases, etc.)
+    '''
 
     step_pattern = Str
+    '''Pattern for inserting of new steps 
+    '''
 
     store_pattern = Str
+    '''Pattern for saving evaluated steps in result file
+    '''
 
     steps_to_add = Int(400)
+    '''Number of steps that will be added and evaluated
+    '''
 
     store_step_mult = Int(1)
     '''Multiplier of steps that will be stored. The last step is stored automatically
     '''
 
     cmd_lst_continue = List
+    '''List of commands for continue evaluation
+    '''
 
     add_steps = Button
+    '''Generate additional steps from pattern, create input file and command
+    list for continue to evaluate them 
+    '''
     def _add_steps_fired(self):
         cmd_lst = []
         for task, last_step in zip(self.task_selector.evaluated_tasks, self.last_steps):
@@ -323,12 +350,16 @@ class Solver(HasTraits):
         self.cmd_lst_continue = cmd_lst
 
     continue_evaluation = Button
+    '''Continue evaluation with new settings and steps
+    '''
     def _continue_evalution_fired(self):
         self.__execute(self.cmd_lst_continue,
                        self.task_selector.evaluated_tasks,
                        self.task_selector.evaluated_tasks_nums)
 
     def __execute(self, cmd_lst, task_lst, task_num_lst, **kwds):
+        '''Execute tasks with multiprocessing.Pool
+        '''
         if len(cmd_lst) > 1:
             arg_lst = zip(cmd_lst, task_lst, task_num_lst)
             execute_pool(run_cmd, self.cpu_num, arg_lst, **kwds)
@@ -340,7 +371,7 @@ class Solver(HasTraits):
                 Group(
                       UItem('task_selector@'),
                       ),
-                Item('cpu_num'),
+                Item('cpu_num', tooltip='Number of CPUs but one'),
                 UItem('evaluate'),
                 Item('add_config_file', label='Additional config file'),
                 Item('step_pattern', style='custom'),
