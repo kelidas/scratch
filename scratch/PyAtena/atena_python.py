@@ -12,6 +12,7 @@ import threading
 import time
 import datetime
 import re
+import sys
 
 
 ATENA_CMD = 'AtenaConsole64.exe /D "{}" /O /extend_real_output_width /execute "{}" "{}" "{}" "{}"'
@@ -28,6 +29,7 @@ def prepare_dir(d):
 def execute_pool(func, cpu_num, args_lst, kwds):
     try:
         pool = multiprocessing.Pool(processes=cpu_num)
+        # pool.map_async(func, args_lst)
         for arg in args_lst:
             pool.apply_async(func, args=arg, kwds=kwds)
         print 'pool apply complete'
@@ -235,7 +237,7 @@ class TaskSelector(HasTraits):
     '''
     @cached_property
     def _get_evaluated_tasks_nums(self):
-        task_nums = [re.compile(self.project_info.task_name_regex).match(task).groups([0])
+        task_nums = [int(re.compile(self.project_info.task_name_regex).match(task).groups()[0])
                      for task in self.evaluated_tasks]
         return task_nums
 
@@ -292,20 +294,22 @@ class Solver(HasTraits):
                 MSG = task + '.msg'
                 ERR = task + '.err'
                 cmd_lst.append(ATENA_CMD.format(DIR, INP, OUT, MSG, ERR))
+            kwds = {}
             self.__execute(cmd_lst,
                            self.task_selector.evaluated_tasks,
-                           self.task_selector.evaluated_tasks_nums, None)
+                           self.task_selector.evaluated_tasks_nums,
+                           kwds)
 
     add_config_file = File(filter=['Atena input (*.inp)|*.inp', 'All files (*.*)|*.*'])
     '''Add file with additional configuration (solving method parameters,
     new load cases, etc.)
     '''
 
-    step_pattern = Str
+    step_pattern = Str(r'''STEP id {0} STATIC name "Load step No.{0}"\nLOAD CASE  1 * 1.0000000  4 * 0.04875  65535 * 1.0000000\nEXECUTE\n''')
     '''Pattern for inserting of new steps 
     '''
 
-    store_pattern = Str
+    store_pattern = Str(r'''STORE "results\result.{0:03d}"''')
     '''Pattern for saving evaluated steps in result file
     '''
 
@@ -358,22 +362,19 @@ class Solver(HasTraits):
     def _continue_evalution_fired(self):
         self.__execute(self.cmd_lst_continue,
                        self.task_selector.evaluated_tasks,
-                       self.task_selector.evaluated_tasks_nums, None)
+                       self.task_selector.evaluated_tasks_nums, {})
 
-    def __execute(self, cmd_lst, task_lst, task_num_lst, **kwds):
+    def __execute(self, cmd_lst, task_lst, task_num_lst, kwds):
         '''Execute tasks with multiprocessing.Pool
         '''
         if len(cmd_lst) > 1:
             arg_lst = zip(cmd_lst, task_lst, task_num_lst)
-            execute_pool(run_cmd, self.cpu_num, arg_lst, **kwds)
+            execute_pool(run_cmd, self.cpu_num, arg_lst, kwds)
         else:
-            run_cmd(cmd_lst, task_lst, task_num_lst, **kwds)
+            run_cmd(cmd_lst, task_lst, task_num_lst, kwds)
 
 
     view = View(
-                Group(
-                      UItem('task_selector@'),
-                      ),
                 Item('cpu_num', tooltip='Number of CPUs but one'),
                 UItem('evaluate'),
                 Item('add_config_file', label='Additional config file'),
@@ -386,10 +387,9 @@ class Solver(HasTraits):
                 )
 
 
-def run_cmd(cmd_lst, task_lst, task_num_lst, **kwds):
-    #p = subprocess.Popen(['dir'])  #cmd_lst)
-    #p.communicate()
-    subprocess.call('dir')
+def run_cmd(cmd_lst, task_lst, task_num_lst, kwds):
+    p = subprocess.call(["sleep 2; echo done"], stdout=sys.stdout)
+    p.communicate()
 
 
 class Postprocessor(HasTraits):
@@ -398,9 +398,6 @@ class Postprocessor(HasTraits):
     task_selector = Instance(TaskSelector)
 
     view = View(
-                Group(
-                      UItem('task_selector@'),
-                      ),
                 )
 
 
@@ -435,11 +432,13 @@ class PyAtena(HasTraits):
                           label='Preprocessor'
                           ),
                     Group(
+                          UItem('task_selector@'),
                           UItem('solver@'),
                           dock='tab',
                           label='Solver'
                           ),
                     Group(
+                          UItem('task_selector@'),
                           UItem('postprocessor@'),
                           dock='tab',
                           label='Postprocessor'
@@ -457,13 +456,10 @@ if __name__ == '__main__':
 #                               input_file='input_final.inp',
 #                               freet_txt='input.txt')
  #   project_info = ProjectInfo(project_dir=os.getcwd())
-    STEP_STR = r'''STEP id {0} STATIC name "Load step No.{0}"
-LOAD CASE  1 * 1.0000000  4 * 0.04875  65535 * 1.0000000
-EXECUTE
-STORE "results\result.{0:03d}"    
-'''
-    project_info = ProjectInfo(project_dir=r'C:\Users\Martina\Desktop\test_novamorava',
-                               input_file=r'C:\Users\Martina\Desktop\test_novamorava\input_final.inp')
-    pyatena = PyAtena(project_info=project_info)  # preprocessor=preprocessor)
+
+    project_info = ProjectInfo(project_dir=r'test',
+                               input_file=r'test/input_final.inp')
+
+    pyatena = PyAtena(project_info=project_info)
     pyatena.configure_traits()
 
