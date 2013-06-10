@@ -55,7 +55,7 @@ class ProjectInfo(HasTraits):
     '''Main directory of the project containing all data of the project
     '''
 
-    input_file = File
+    input_file = File(filter=['Atena input (*.inp)|*.inp', 'All files (*.*)|*.*'])
     '''Input file generated from ATENA (model data and definition of initial 
     steps). Values of variables that will be modified have to be replaced with 
     string '{v}'. 
@@ -96,7 +96,7 @@ class Preprocessor(HasTraits):
 
     project_info = Instance(ProjectInfo)
 
-    freet_txt = File
+    freet_txt = File(filter=['Atena input (*.txt)|*.txt', 'All files (*.*)|*.*'])
     '''Table of variables ordered according to their position in input file. 
     The first row (header) contains names of variables.
     '''
@@ -293,7 +293,7 @@ class Solver(HasTraits):
                            self.task_selector.evaluated_tasks,
                            self.task_selector.evaluated_tasks_nums)
 
-    add_config_file = File
+    add_config_file = File(filter=['Atena input (*.inp)|*.inp', 'All files (*.*)|*.*'])
     '''Add file with additional configuration (solving method parameters,
     new load cases, etc.)
     '''
