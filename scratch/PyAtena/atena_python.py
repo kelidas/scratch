@@ -221,7 +221,7 @@ class TaskSelector(HasTraits):
 
     evaluated_tasks = List
 
-    evaluated_tasks_nums = Property(List, depends_on='project_info.project_dir')
+    evaluated_tasks_nums = Property(List, depends_on='evaluated_tasks')
     @cached_property
     def _get_task_nums(self):
         task_nums = [self.project_info.task_name_regex.match(task).groups([0])
@@ -249,12 +249,14 @@ class Solver(HasTraits):
 
     task_selector = Instance(TaskSelector)
 
-    last_steps = Property(Int)
+    last_steps = Property(Int, depends_on='task_selector.evaluated_tasks')
+    @cached_property
     def _get_last_steps(self):
         last_steps = []
-        # TODO:
-        for i in range(self.evaluated_start_sim, self.evaluated_last_sim + 1):
-            file_lst = os.listdir(os.path.join(self.working_dir, self.task_name.format(i), 'results'))
+        for task in self.task_selector.evaluated_tasks:
+            file_lst = os.listdir(os.path.join(self.working_dir,
+                                               task,
+                                               'results'))
             step_nums = [int(os.path.splitext(f)[1][1:]) for f in file_lst]
             last_steps.append(np.max(step_nums))
         return last_steps
