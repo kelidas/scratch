@@ -15,7 +15,7 @@ import re
 import sys
 
 
-ATENA_CMD = 'AtenaConsole64.exe /D "{}" /O /extend_real_output_width /execute "{}" "{}" "{}" "{}"'
+ATENA_CMD = 'AtenaConsole.exe /D "{}" /O /extend_real_output_width /execute "{}" "{}" "{}" "{}"'
 
 def prepare_dir(d):
     '''Prepare directory if does not exist. If exist then delete it and create again.
@@ -26,10 +26,16 @@ def prepare_dir(d):
     else:
         os.mkdir(d)
 
+def get_last_step(result_dir):
+        file_lst = os.listdir(result_dir)
+        step_nums = [int(os.path.splitext(f)[1][1:]) for f in file_lst]
+        return np.max(step_nums)
+
 def execute_pool(func, cpu_num, args_lst, kwds):
     try:
         pool = multiprocessing.Pool(processes=cpu_num)
-        # pool.map_async(func, args_lst)
+        print args_lst
+        pool.map_async(func, args_lst)
         for arg in args_lst:
             pool.apply_async(func, args=arg, kwds=kwds)
         print 'pool apply complete'
@@ -262,18 +268,15 @@ class Solver(HasTraits):
 
     task_selector = Instance(TaskSelector)
 
-    last_steps = Property(List, depends_on='task_selector.evaluated_tasks')
+    last_steps = Property(List)
     '''List of last steps to continue evaluation
     '''
-    @cached_property
     def _get_last_steps(self):
         last_steps = []
         for task in self.task_selector.evaluated_tasks:
-            file_lst = os.listdir(os.path.join(self.working_dir,
-                                               task,
-                                               'results'))
-            step_nums = [int(os.path.splitext(f)[1][1:]) for f in file_lst]
-            last_steps.append(np.max(step_nums))
+            last_step = get_last_step(os.path.join(self.project_info.project_dir,
+                                                   task, 'results'))
+            last_steps.append(last_step)
         return last_steps
 
     cpu_num = Int
@@ -305,7 +308,7 @@ class Solver(HasTraits):
     new load cases, etc.)
     '''
 
-    step_pattern = Str(r'''STEP id {0} STATIC name "Load step No.{0}"\nLOAD CASE  1 * 1.0000000  4 * 0.04875  65535 * 1.0000000\nEXECUTE\n''')
+    step_pattern = Str('''STEP id {0} STATIC name "Load step No.{0}"\nLOAD CASE  1 * 1.0000000  4 * 0.04875  65535 * 1.0000000\nEXECUTE\n''')
     '''Pattern for inserting of new steps 
     '''
 
@@ -338,7 +341,7 @@ class Solver(HasTraits):
                 with open(self.add_config_file, 'r') as f:
                     steps = f.read() + '\n'
             for step in range(last_step + 1, last_step + self.steps_to_add + 1):
-                steps += self.step_str.format(step)
+                steps += self.step_pattern.format(step)
                 if step % self.store_step_mult == 0:
                     steps += self.store_pattern.format(step) + '\n'
             # add last step to be saved
@@ -359,7 +362,7 @@ class Solver(HasTraits):
     continue_evaluation = Button
     '''Continue evaluation with new settings and steps
     '''
-    def _continue_evalution_fired(self):
+    def _continue_evaluation_fired(self):
         self.__execute(self.cmd_lst_continue,
                        self.task_selector.evaluated_tasks,
                        self.task_selector.evaluated_tasks_nums, {})
@@ -371,7 +374,7 @@ class Solver(HasTraits):
             arg_lst = zip(cmd_lst, task_lst, task_num_lst)
             execute_pool(run_cmd, self.cpu_num, arg_lst, kwds)
         else:
-            run_cmd(cmd_lst, task_lst, task_num_lst, kwds)
+            run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], **kwds)
 
 
     view = View(
@@ -387,9 +390,10 @@ class Solver(HasTraits):
                 )
 
 
-def run_cmd(cmd_lst, task_lst, task_num_lst, kwds):
-    p = subprocess.call(["sleep 2; echo done"], stdout=sys.stdout)
-    p.communicate()
+def run_cmd(cmd, task, task_num, **kwds):
+    subprocess.call(cmd)
+#     p = subprocess.Popen(cmd, stdout=sys.stdout, shell=True)
+#     p.communicate()
 
 
 class Postprocessor(HasTraits):
@@ -457,8 +461,8 @@ if __name__ == '__main__':
 #                               freet_txt='input.txt')
  #   project_info = ProjectInfo(project_dir=os.getcwd())
 
-    project_info = ProjectInfo(project_dir=r'test',
-                               input_file=r'test/input_final.inp')
+    project_info = ProjectInfo(project_dir=r'E:\Documents\python\workspace_git\scratch\scratch\PyAtena\test',
+                               input_file=r'E:\Documents\python\workspace_git\scratch\scratch\PyAtena/test/input_final.inp')
 
     pyatena = PyAtena(project_info=project_info)
     pyatena.configure_traits()
