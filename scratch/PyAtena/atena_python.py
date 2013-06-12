@@ -1,7 +1,7 @@
 from traits.api import HasTraits, Float, Property, cached_property, \
     Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
     Constant, Directory, File, Str, Button, Int, List
-from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
+from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES, ProgressDialog
 from traitsui.api import View, Item, UItem, Group, HGroup, OKButton, CodeEditor, Tabbed, SetEditor
 import numpy as np
 import subprocess
@@ -13,7 +13,8 @@ import time
 import datetime
 import re
 import sys
-
+import zipfile
+import shutil
 
 ATENA_CMD = 'AtenaConsole.exe /D "{}" /O /extend_real_output_width /execute "{}" "{}" "{}" "{}"'
 
@@ -32,6 +33,19 @@ def get_last_step(result_dir):
         return np.max(step_nums)
 
 def execute_pool(func, cpu_num, args_lst, kwds):
+    pool = multiprocessing.Pool(processes=cpu_num)
+    print args_lst
+    # pool.map_async(func, args_lst)
+    for arg in args_lst:
+        pool.apply_async(func, args=arg, kwds=kwds)
+    print 'pool apply complete'
+    print 'joining pool processes'
+    pool.close()
+    pool.join()
+    print 'join complete'
+    print 'the end'
+
+def execute_pool_orig(func, cpu_num, args_lst, kwds):
     try:
         pool = multiprocessing.Pool(processes=cpu_num)
         print args_lst
@@ -297,11 +311,17 @@ class Solver(HasTraits):
                 MSG = task + '.msg'
                 ERR = task + '.err'
                 cmd_lst.append(ATENA_CMD.format(DIR, INP, OUT, MSG, ERR))
-            kwds = {}
+            progress = ProgressDialog(title="progress", message="running",
+                                      max=len(cmd_lst),
+                                      show_time=False, can_cancel=False)
+            progress.open()
+            kwds = dict(progress_update=progress.update)
             self.__execute(cmd_lst,
                            self.task_selector.evaluated_tasks,
                            self.task_selector.evaluated_tasks_nums,
+                           np.arange(len(cmd_lst)) + 1,
                            kwds)
+            progress.close()
 
     add_config_file = File(filter=['Atena input (*.inp)|*.inp', 'All files (*.*)|*.*'])
     '''Add file with additional configuration (solving method parameters,
@@ -363,18 +383,26 @@ class Solver(HasTraits):
     '''Continue evaluation with new settings and steps
     '''
     def _continue_evaluation_fired(self):
+        progress = ProgressDialog(title="progress", message="running",
+                                      max=len(self.cmd_lst_continue),
+                                      show_time=False, can_cancel=False)
+        progress.open()
+        kwds = dict(progress_update=progress.update)
         self.__execute(self.cmd_lst_continue,
                        self.task_selector.evaluated_tasks,
-                       self.task_selector.evaluated_tasks_nums, {})
+                       self.task_selector.evaluated_tasks_nums,
+                       np.arange(len(self.cmd_lst_continue)) + 1,
+                       kwds)
+        progress.close()
 
-    def __execute(self, cmd_lst, task_lst, task_num_lst, kwds):
+    def __execute(self, cmd_lst, task_lst, task_num_lst, progress_steps, kwds):
         '''Execute tasks with multiprocessing.Pool
         '''
         if len(cmd_lst) > 1:
-            arg_lst = zip(cmd_lst, task_lst, task_num_lst)
+            arg_lst = zip(cmd_lst, task_lst, task_num_lst, progress_steps)
             execute_pool(run_cmd, self.cpu_num, arg_lst, kwds)
         else:
-            run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], **kwds)
+            run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], progress_steps[0], **kwds)
 
 
     view = View(
@@ -390,10 +418,12 @@ class Solver(HasTraits):
                 )
 
 
-def run_cmd(cmd, task, task_num, **kwds):
-    subprocess.call(cmd)
-#     p = subprocess.Popen(cmd, stdout=sys.stdout, shell=True)
-#     p.communicate()
+def run_cmd(cmd, task, task_num, progress_step, progress_update):
+    # subprocess.call(['ls', '-la'])
+    # subprocess.call(cmd)
+    p = subprocess.Popen(['ls -la'], shell=True)
+    p.communicate()
+    progress_update(progress_step)
 
 
 class Postprocessor(HasTraits):
@@ -402,6 +432,53 @@ class Postprocessor(HasTraits):
     task_selector = Instance(TaskSelector)
 
     view = View(
+                )
+
+
+class Archiver(HasTraits):
+    '''
+    '''
+    project_info = Instance(ProjectInfo)
+
+    task_selector = Instance(TaskSelector)
+
+    delete_directory = Bool(False)
+    delete_archive = Bool(False)
+
+    compress = Button
+    def _compress_fired(self):
+        for task in self.task_selector.evaluated_tasks:
+            task_dir = os.path.join(self.project_info.project_dir, task)
+            results_dir = os.path.join(task_dir, 'results')
+            zip_file = os.path.join(task_dir, 'results.zip')
+            zf = zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED)
+            for dirname, subdirs, files in os.walk(results_dir):
+                for filename in files:
+                    zf.write(os.path.join(dirname, filename),
+                             os.path.join('results', filename))
+            zf.close()
+            if self.delete_directory:
+                if confirm(None, 'Delete directory "results" after compression was selected.\nDo you want to delete it?') == YES:
+                    shutil.rmtree(results_dir)
+
+    decompress = Button
+    def _decompress_fired(self):
+        for task in self.task_selector.evaluated_tasks:
+            task_dir = os.path.join(self.project_info.project_dir, task)
+            # results_dir = os.path.join(task_dir, 'results')
+            zip_file = os.path.join(task_dir, 'results.zip')
+            zf = zipfile.ZipFile(zip_file, 'r')
+            zf.extractall(task_dir)
+            zf.close()
+            if self.delete_archive:
+                if confirm(None, 'Delete zip-file after decompression was selected.\nDo you want to delete it?') == YES:
+                    os.remove(zip_file)
+
+    view = View(
+                Item('delete_directory'),
+                Item('delete_archive'),
+                UItem('compress'),
+                UItem('decompress')
                 )
 
 
@@ -427,6 +504,11 @@ class PyAtena(HasTraits):
         return Postprocessor(project_info=self.project_info,
                              task_selector=self.task_selector)
 
+    archiver = Instance(Archiver)
+    def _archiver_default(self):
+        return Archiver(project_info=self.project_info,
+                        task_selector=self.task_selector)
+
     view = View(
                 UItem('project_info@'),
                 Tabbed(
@@ -447,6 +529,12 @@ class PyAtena(HasTraits):
                           dock='tab',
                           label='Postprocessor'
                           ),
+                    Group(
+                          UItem('task_selector@'),
+                          UItem('archiver@'),
+                          dock='tab',
+                          label='Archiver'
+                          ),
                        ),
                 title='PyAtena',
                 resizable=True,
@@ -461,8 +549,8 @@ if __name__ == '__main__':
 #                               freet_txt='input.txt')
  #   project_info = ProjectInfo(project_dir=os.getcwd())
 
-    project_info = ProjectInfo(project_dir=r'E:\Documents\python\workspace_git\scratch\scratch\PyAtena\test',
-                               input_file=r'E:\Documents\python\workspace_git\scratch\scratch\PyAtena/test/input_final.inp')
+    project_info = ProjectInfo(project_dir=r'test',
+                               input_file=r'test/input_final.inp')
 
     pyatena = PyAtena(project_info=project_info)
     pyatena.configure_traits()
