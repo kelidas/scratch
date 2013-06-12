@@ -33,23 +33,8 @@ def get_last_step(result_dir):
         return np.max(step_nums)
 
 def execute_pool(func, cpu_num, args_lst, kwds):
-    pool = multiprocessing.Pool(processes=cpu_num)
-    print args_lst
-    # pool.map_async(func, args_lst)
-    for arg in args_lst:
-        pool.apply_async(func, args=arg, kwds=kwds)
-    print 'pool apply complete'
-    print 'joining pool processes'
-    pool.close()
-    pool.join()
-    print 'join complete'
-    print 'the end'
-
-def execute_pool_orig(func, cpu_num, args_lst, kwds):
     try:
         pool = multiprocessing.Pool(processes=cpu_num)
-        print args_lst
-        pool.map_async(func, args_lst)
         for arg in args_lst:
             pool.apply_async(func, args=arg, kwds=kwds)
         print 'pool apply complete'
@@ -67,6 +52,17 @@ def execute_pool_orig(func, cpu_num, args_lst, kwds):
         pool.join()
         print 'join complete'
     print 'the end'
+
+def run_cmd(cmd, task, task_num, **kwds):
+    # subprocess.call(['ls', '-la'])
+    # subprocess.call(cmd)
+    print 'run'
+    # p = subprocess.Popen(['ls', '-la'])  # , shell=True)
+    with open(os.devnull, "w") as fnull:
+        p = subprocess.Popen('ls -la', stdout=fnull, shell=True)
+
+        p.communicate()
+    print 'finished'
 
 
 class ProjectInfo(HasTraits):
@@ -311,17 +307,11 @@ class Solver(HasTraits):
                 MSG = task + '.msg'
                 ERR = task + '.err'
                 cmd_lst.append(ATENA_CMD.format(DIR, INP, OUT, MSG, ERR))
-            progress = ProgressDialog(title="progress", message="running",
-                                      max=len(cmd_lst),
-                                      show_time=False, can_cancel=False)
-            progress.open()
-            kwds = dict(progress_update=progress.update)
+            kwds = {}
             self.__execute(cmd_lst,
                            self.task_selector.evaluated_tasks,
                            self.task_selector.evaluated_tasks_nums,
-                           np.arange(len(cmd_lst)) + 1,
                            kwds)
-            progress.close()
 
     add_config_file = File(filter=['Atena input (*.inp)|*.inp', 'All files (*.*)|*.*'])
     '''Add file with additional configuration (solving method parameters,
@@ -383,26 +373,18 @@ class Solver(HasTraits):
     '''Continue evaluation with new settings and steps
     '''
     def _continue_evaluation_fired(self):
-        progress = ProgressDialog(title="progress", message="running",
-                                      max=len(self.cmd_lst_continue),
-                                      show_time=False, can_cancel=False)
-        progress.open()
-        kwds = dict(progress_update=progress.update)
         self.__execute(self.cmd_lst_continue,
                        self.task_selector.evaluated_tasks,
-                       self.task_selector.evaluated_tasks_nums,
-                       np.arange(len(self.cmd_lst_continue)) + 1,
-                       kwds)
-        progress.close()
+                       self.task_selector.evaluated_tasks_nums, {})
 
-    def __execute(self, cmd_lst, task_lst, task_num_lst, progress_steps, kwds):
+    def __execute(self, cmd_lst, task_lst, task_num_lst, kwds):
         '''Execute tasks with multiprocessing.Pool
         '''
         if len(cmd_lst) > 1:
-            arg_lst = zip(cmd_lst, task_lst, task_num_lst, progress_steps)
+            arg_lst = zip(cmd_lst, task_lst, task_num_lst)
             execute_pool(run_cmd, self.cpu_num, arg_lst, kwds)
         else:
-            run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], progress_steps[0], **kwds)
+            run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], **kwds)
 
 
     view = View(
@@ -416,14 +398,6 @@ class Solver(HasTraits):
                 UItem('add_steps'),
                 UItem('continue_evaluation')
                 )
-
-
-def run_cmd(cmd, task, task_num, progress_step, progress_update):
-    # subprocess.call(['ls', '-la'])
-    # subprocess.call(cmd)
-    p = subprocess.Popen(['ls -la'], shell=True)
-    p.communicate()
-    progress_update(progress_step)
 
 
 class Postprocessor(HasTraits):
