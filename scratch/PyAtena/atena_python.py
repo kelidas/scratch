@@ -54,15 +54,13 @@ def execute_pool(func, cpu_num, args_lst, kwds):
     print 'the end'
 
 def run_cmd(cmd, task, task_num, **kwds):
-    # subprocess.call(['ls', '-la'])
-    # subprocess.call(cmd)
-    print 'run'
-    # p = subprocess.Popen(['ls', '-la'])  # , shell=True)
+    print task, 'running ...'
+    sys.stdout.flush()
     with open(os.devnull, "w") as fnull:
-        p = subprocess.Popen('ls -la', stdout=fnull, shell=True)
-
+        p = subprocess.Popen('start /WAIT ' + cmd, stdout=fnull, shell=True)
         p.communicate()
-    print 'finished'
+    print task, 'finished'
+    sys.stdout.flush()
 
 
 class ProjectInfo(HasTraits):
@@ -167,7 +165,6 @@ class Preprocessor(HasTraits):
     task_name_lst = Property(List)
     '''List of generated task names for all simulations
     '''
-    @cached_property
     def _get_task_name_lst(self):
         task_name_lst = []
         for i in range(self.n_sim_start, self.n_sim_stop + 1):
@@ -355,7 +352,7 @@ class Solver(HasTraits):
                 if step % self.store_step_mult == 0:
                     steps += self.store_pattern.format(step) + '\n'
             # add last step to be saved
-            if last_step + self.steps_to_add % self.store_step_mult != 0:
+            if step % self.store_step_mult != 0:
                 steps += self.store_pattern.format(last_step + self.steps_to_add) + '\n'
             DIR = os.path.join(self.project_info.project_dir, task)
             INP = 'continue_{0:%d}_{0:%m}_{0:%y}_{0:%H}_{0:%M}_{1:s}.inp'.format(datetime.datetime.now(), task)
@@ -434,6 +431,7 @@ class Archiver(HasTraits):
             if self.delete_directory:
                 if confirm(None, 'Delete directory "results" after compression was selected.\nDo you want to delete it?') == YES:
                     shutil.rmtree(results_dir)
+        print 'Results compressed'
 
     decompress = Button
     def _decompress_fired(self):
@@ -447,6 +445,7 @@ class Archiver(HasTraits):
             if self.delete_archive:
                 if confirm(None, 'Delete zip-file after decompression was selected.\nDo you want to delete it?') == YES:
                     os.remove(zip_file)
+        print 'Results decompressed'
 
     view = View(
                 Item('delete_directory'),
@@ -523,8 +522,8 @@ if __name__ == '__main__':
 #                               freet_txt='input.txt')
  #   project_info = ProjectInfo(project_dir=os.getcwd())
 
-    project_info = ProjectInfo(project_dir=r'test',
-                               input_file=r'test/input_final.inp')
+    project_info = ProjectInfo(project_dir=r'E:\Documents\python\workspace_git\scratch\scratch\PyAtena\test',
+                               input_file=r'E:\Documents\python\workspace_git\scratch\scratch\PyAtena\test\input_final.inp')
 
     pyatena = PyAtena(project_info=project_info)
     pyatena.configure_traits()
