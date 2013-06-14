@@ -1,32 +1,10 @@
-
-import numpy as np
-import pickle
-import os
-# os.environ['MPMATH_NOGMPY'] = 'Y'
-import mpmath as mp
-mp.mp.dps = 1000
-
-data = np.load(r'data.npy')
-print data
-
-pkl_file = open('data.pkl', 'rb')
-data = pickle.load(pkl_file)
-pkl_file.close()
-print data
-
-
-
-
-
-quit()
-
 from traits.etsconfig.api import ETSConfig
 ETSConfig.toolkit = 'wx'
 
 import numpy as np
 from etsproxy.traits.api import \
     HasTraits, Int, Array, Str, implements, Range, Property, cached_property, File, \
-     Float, Instance, Any, Interface, Event, on_trait_change, Button, Bool, Callable, BaseFloat
+     Float, Instance, Any, Interface, Event, on_trait_change, Button, Bool, Callable, BaseFloat, Trait
 from etsproxy.traits.ui.api import \
     View, Item, Group, VGroup, HGroup, HSplit, VSplit, Tabbed, ModelView, Controller
 from math import pi, e
@@ -65,6 +43,7 @@ class PosFloat (BaseFloat):
 class a(HasTraits):
 
     tl = PosFloat
+    b = Trait([1, 2, 3])
 
 
 
