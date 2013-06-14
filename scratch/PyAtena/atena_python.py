@@ -59,7 +59,8 @@ def run_cmd(cmd, task, task_num, **kwds):
     print 'run'
     # p = subprocess.Popen(['ls', '-la'])  # , shell=True)
     with open(os.devnull, "w") as fnull:
-        p = subprocess.Popen('ls -la', stdout=fnull, shell=True)
+        p = subprocess.Popen('konsole -e ls -la', stdout=fnull, shell=True)
+        # p = subprocess.Popen('start '+cmd, stdout=fnull, shell=True)
 
         p.communicate()
     print 'finished'
@@ -101,10 +102,13 @@ class ProjectInfo(HasTraits):
     def _get_task_name_regex(self):
         return self.basename + '_(\d+)'
 
+    result_name_pattern = Str('result.{:03d}')
+
     view = View(
               'project_dir',
               'input_file',
-              Item('task_name_pattern', style='readonly'),
+              Item('task_name_pattern'),
+              'result_name_pattern',
                 )
 
 
@@ -257,6 +261,17 @@ class TaskSelector(HasTraits):
                      for task in self.evaluated_tasks]
         return task_nums
 
+    last_steps = Property(List)
+    '''List of last steps to continue evaluation
+    '''
+    def _get_last_steps(self):
+        last_steps = []
+        for task in self.task_selector.evaluated_tasks:
+            last_step = get_last_step(os.path.join(self.project_info.project_dir,
+                                                   task, 'results'))
+            last_steps.append(last_step)
+        return last_steps
+
     view = View(
                 UItem('load_task_lst'),
                 Item('evaluated_tasks', show_label=False,
@@ -277,17 +292,6 @@ class Solver(HasTraits):
     project_info = Instance(ProjectInfo)
 
     task_selector = Instance(TaskSelector)
-
-    last_steps = Property(List)
-    '''List of last steps to continue evaluation
-    '''
-    def _get_last_steps(self):
-        last_steps = []
-        for task in self.task_selector.evaluated_tasks:
-            last_step = get_last_step(os.path.join(self.project_info.project_dir,
-                                                   task, 'results'))
-            last_steps.append(last_step)
-        return last_steps
 
     cpu_num = Int
     '''Number of CPUs but one that are available for execution 
@@ -344,7 +348,7 @@ class Solver(HasTraits):
     '''
     def _add_steps_fired(self):
         cmd_lst = []
-        for task, last_step in zip(self.task_selector.evaluated_tasks, self.last_steps):
+        for task, last_step in zip(self.task_selector.evaluated_tasks, self.task_selector.last_steps):
             if self.add_config_file == '':
                 steps = ''  # self.
             else:
@@ -360,7 +364,8 @@ class Solver(HasTraits):
             DIR = os.path.join(self.project_info.project_dir, task)
             INP = 'continue_{0:%d}_{0:%m}_{0:%y}_{0:%H}_{0:%M}_{1:s}.inp'.format(datetime.datetime.now(), task)
             outfile = open(os.path.join(DIR, INP), 'w')
-            outfile.write('RESTORE "results\\result.{:03d}"\n\n'.format(last_step))
+            result_name = self.project_info.result_name_pattern.format(last_step)
+            outfile.write('RESTORE "results\\{}"\n\n'.format(result_name))
             outfile.write(steps)
             outfile.close()
             OUT = task + '.out'
@@ -405,7 +410,51 @@ class Postprocessor(HasTraits):
 
     task_selector = Instance(TaskSelector)
 
+    monitor_export_available = Bool(False)
+
+    monitor_export_file = File()
+    def _monitor_export_file_default(self):
+        export_file = os.path.join(self.project_info.project_dir, 'monitor_export.inp')
+        if os.path.exists(export_file):
+            self.monitor_export_available = True
+            return export_file
+        else:
+            self.monitor_export_available = False
+            return 'Monitor export file does not exist. Create monitor_export.inp in project directory.'
+
+    export_file_data = Property(Str, depends_on='monitor_export_file')
+    @cached_property
+    def _get_export_file_data(self):
+        with open(os.path.join(self.working_dir, 'monitor_export.inp'), 'r') as infile:
+            return infile.read()
+
+    monitor_export = Button('Export')
+    def _evaluate_fired(self):
+        if confirm(None, 'All stored exports will be deleted!') == YES:
+            cmd_lst = []
+            for task in self.task_selector.evaluated_tasks:
+                DIR = os.path.join(self.project_info.project_dir, task)
+                prepare_dir(os.path.join(DIR, 'exports'))
+                outfile = open(os.path.join(self.project_info.project_dir,
+                                            task, 'monitor_export.inp'), 'w')
+                last_step = self.task_selector.last_steps
+                outfile.write('RESTORE "results\{}"\n'.format(last_step))
+                outfile.write(self.export_file_data)
+                outfile.close()
+                INP = task + '.inp'
+                OUT = task + '.out'
+                MSG = task + '.msg'
+                ERR = task + '.err'
+                cmd_lst.append(ATENA_CMD.format(DIR, INP, OUT, MSG, ERR))
+            kwds = {}
+            self.__execute(cmd_lst,
+                           self.task_selector.evaluated_tasks,
+                           self.task_selector.evaluated_tasks_nums,
+                           kwds)
+
     view = View(
+                Item('monitor_export_file', style='readonly'),
+                UItem('monitor_export', enabled_when='monitor_export_available')
                 )
 
 
