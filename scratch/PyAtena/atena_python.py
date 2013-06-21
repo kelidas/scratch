@@ -166,6 +166,12 @@ class Preprocessor(HasTraits):
     '''Number of the last simulation
     '''
 
+    task_num_lst = Property(List)
+    '''List of generated task names for all simulations
+    '''
+    def _get_task_num_lst(self):
+        return np.arange(self.n_sim_start, self.n_sim_stop + 1).tolist()
+
     task_name_lst = Property(List)
     '''List of generated task names for all simulations
     '''
@@ -194,12 +200,12 @@ class Preprocessor(HasTraits):
     '''
     def _generate_fired(self):
         if confirm(None, 'All results will be deleted!') == YES:
-            for idx, task in enumerate(self.task_name_lst):
+            for task_num, task in zip(self.task_num_lst, self.task_name_lst):
                 task_dir = os.path.join(self.project_info.project_dir, task)
                 prepare_dir(task_dir)
                 outfile = open(os.path.join(task_dir, task + '.inp'), 'w')
                 if self.n_var_input > 0:
-                    self.__insert_vars_to_inp(outfile, self.freet_data[idx, :])
+                    self.__insert_vars_to_inp(outfile, self.freet_data[task_num - 1, :])
                 outfile.close()
                 print 'TASK ' + task + ' created'
 
@@ -372,6 +378,7 @@ class Solver(HasTraits):
             ERR = task + '.err'
             cmd_lst.append(ATENA_CMD.format(DIR, INP, OUT, MSG, ERR))
         self.cmd_lst_continue = cmd_lst
+        print 'input files to continue generated'
 
     continue_evaluation = Button
     '''Continue evaluation with new settings and steps
