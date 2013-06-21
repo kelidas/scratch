@@ -16,7 +16,7 @@ import sys
 import zipfile
 import shutil
 
-ATENA_CMD = 'AtenaConsole.exe /D "{}" /O /extend_real_output_width /execute "{}" "{}" "{}" "{}"'
+ATENA_CMD = 'AtenaConsole64.exe /D "{}" /O /extend_real_output_width /execute "{}" "{}" "{}" "{}"'
 
 def prepare_dir(d):
     '''Prepare directory if does not exist. If exist then delete it and create again.
@@ -263,7 +263,7 @@ class TaskSelector(HasTraits):
     '''
     def _get_last_steps(self):
         last_steps = []
-        for task in self.task_selector.evaluated_tasks:
+        for task in self.evaluated_tasks:
             last_step = get_last_step(os.path.join(self.project_info.project_dir,
                                                    task, 'results'))
             last_steps.append(last_step)
@@ -354,7 +354,9 @@ class Solver(HasTraits):
             for step in range(last_step + 1, last_step + self.steps_to_add + 1):
                 steps += self.step_pattern.format(step)
                 if step % self.store_step_mult == 0:
-                    steps += self.store_pattern.format(step) + '\n'
+                    steps += self.store_pattern.format(step) + '\n\n'
+                else:
+                    steps += '\n'
             # add last step to be saved
             if step % self.store_step_mult != 0:
                 steps += self.store_pattern.format(last_step + self.steps_to_add) + '\n'
@@ -570,10 +572,10 @@ if __name__ == '__main__':
 #                               input_file='input_final.inp',
 #                               freet_txt='input.txt')
 #   project_info = ProjectInfo(project_dir=os.getcwd())
-    test_dir = os.path.join(os.getcwd(), 'test')
-    project_info = ProjectInfo(project_dir=test_dir,
-                               input_file=os.path.join(test_dir, 'input_final.inp'))
+#    test_dir = os.path.join(os.getcwd(), 'test')
+#    project_info = ProjectInfo(project_dir=test_dir,
+#                               input_file=os.path.join(test_dir, 'input_final.inp'))
 
-    pyatena = PyAtena(project_info=project_info)
+    pyatena = PyAtena()  #project_info=project_info)
     pyatena.configure_traits()
 
