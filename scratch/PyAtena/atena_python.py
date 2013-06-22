@@ -445,7 +445,7 @@ class Postprocessor(HasTraits):
                 outfile = open(os.path.join(self.project_info.project_dir,
                                             task, INP), 'w')
                 last_step = self.task_selector.last_steps[idx]
-                outfile.write('RESTORE "results\\result.{}"\n'.format(last_step))
+                outfile.write('RESTORE "results\\result.{:03}"\n'.format(last_step))
                 outfile.write(self.export_file_data)
                 outfile.close()
                 OUT = task + '.out'
