@@ -431,23 +431,23 @@ class Postprocessor(HasTraits):
     export_file_data = Property(Str, depends_on='monitor_export_file')
     @cached_property
     def _get_export_file_data(self):
-        with open(os.path.join(self.working_dir, 'monitor_export.inp'), 'r') as infile:
+        with open(os.path.join(self.project_info.project_dir, 'monitor_export.inp'), 'r') as infile:
             return infile.read()
 
     monitor_export = Button('Export')
-    def _evaluate_fired(self):
+    def _monitor_export_fired(self):
         if confirm(None, 'All stored exports will be deleted!') == YES:
             cmd_lst = []
-            for task in self.task_selector.evaluated_tasks:
+            for idx, task in enumerate(self.task_selector.evaluated_tasks):
                 DIR = os.path.join(self.project_info.project_dir, task)
+                INP = os.path.split(self.monitor_export_file)[1]
                 prepare_dir(os.path.join(DIR, 'exports'))
                 outfile = open(os.path.join(self.project_info.project_dir,
-                                            task, 'monitor_export.inp'), 'w')
-                last_step = self.task_selector.last_steps
-                outfile.write('RESTORE "results\{}"\n'.format(last_step))
+                                            task, INP), 'w')
+                last_step = self.task_selector.last_steps[idx]
+                outfile.write('RESTORE "results\\result.{}"\n'.format(last_step))
                 outfile.write(self.export_file_data)
                 outfile.close()
-                INP = task + '.inp'
                 OUT = task + '.out'
                 MSG = task + '.msg'
                 ERR = task + '.err'
@@ -457,6 +457,17 @@ class Postprocessor(HasTraits):
                            self.task_selector.evaluated_tasks,
                            self.task_selector.evaluated_tasks_nums,
                            kwds)
+        print 'monitor data exported'
+
+    # todo: duplex
+    def __execute(self, cmd_lst, task_lst, task_num_lst, kwds):
+        '''Execute tasks with multiprocessing.Pool
+        '''
+        if len(cmd_lst) > 1:
+            arg_lst = zip(cmd_lst, task_lst, task_num_lst)
+            execute_pool(run_cmd, self.cpu_num, arg_lst, kwds)
+        else:
+            run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], **kwds)
 
     view = View(
                 Item('monitor_export_file', style='readonly'),
