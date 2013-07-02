@@ -102,11 +102,18 @@ class ProjectInfo(HasTraits):
 
     result_name_pattern = Str('result.{:03d}')
 
+    cpu_num = Int
+    '''Number of CPUs but one that are available for execution 
+    '''
+    def _cpu_num_default(self):
+        return multiprocessing.cpu_count() - 1
+
     view = View(
               'project_dir',
               'input_file',
               Item('task_name_pattern'),
               'result_name_pattern',
+              Item('cpu_num', tooltip='Number of CPUs but one'),
                 )
 
 
@@ -296,12 +303,6 @@ class Solver(HasTraits):
 
     task_selector = Instance(TaskSelector)
 
-    cpu_num = Int
-    '''Number of CPUs but one that are available for execution 
-    '''
-    def _cpu_num_default(self):
-        return multiprocessing.cpu_count() - 1
-
     evaluate = Button('Execute/re-execute')
     def _evaluate_fired(self):
         if confirm(None, 'All stored results will be deleted!') == YES:
@@ -393,13 +394,12 @@ class Solver(HasTraits):
         '''
         if len(cmd_lst) > 1:
             arg_lst = zip(cmd_lst, task_lst, task_num_lst)
-            execute_pool(run_cmd, self.cpu_num, arg_lst, kwds)
+            execute_pool(run_cmd, self.task_info.cpu_num, arg_lst, kwds)
         else:
             run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], **kwds)
 
 
     view = View(
-                Item('cpu_num', tooltip='Number of CPUs but one'),
                 UItem('evaluate'),
                 Item('add_config_file', label='Additional config file'),
                 Item('step_pattern', style='custom'),
@@ -466,7 +466,7 @@ class Postprocessor(HasTraits):
         '''
         if len(cmd_lst) > 1:
             arg_lst = zip(cmd_lst, task_lst, task_num_lst)
-            execute_pool(run_cmd, self.cpu_num, arg_lst, kwds)
+            execute_pool(run_cmd, self.task_info.cpu_num, arg_lst, kwds)
         else:
             run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], **kwds)
 
@@ -488,6 +488,9 @@ class Archiver(HasTraits):
 
     compress = Button
     def _compress_fired(self):
+        ask_again = True
+        if confirm(None, 'Delete directory "results" after compression  was selected.\nDo you want to delete it for all selected tasks?') == YES:
+            ask_again = False
         for task in self.task_selector.evaluated_tasks:
             task_dir = os.path.join(self.project_info.project_dir, task)
             results_dir = os.path.join(task_dir, 'results')
@@ -498,13 +501,16 @@ class Archiver(HasTraits):
                     zf.write(os.path.join(dirname, filename),
                              os.path.join('results', filename))
             zf.close()
-            if self.delete_directory:
+            if ask_again:
                 if confirm(None, 'Delete directory "results" after compression was selected.\nDo you want to delete it?') == YES:
                     shutil.rmtree(results_dir)
         print 'Results compressed'
 
     decompress = Button
     def _decompress_fired(self):
+        ask_again = True
+        if confirm(None, 'Delete zip-file after decompression was selected.\nDo you want to delete it for all selected tasks?') == YES:
+            ask_again = False
         for task in self.task_selector.evaluated_tasks:
             task_dir = os.path.join(self.project_info.project_dir, task)
             # results_dir = os.path.join(task_dir, 'results')
@@ -512,7 +518,7 @@ class Archiver(HasTraits):
             zf = zipfile.ZipFile(zip_file, 'r')
             zf.extractall(task_dir)
             zf.close()
-            if self.delete_archive:
+            if ask_again:
                 if confirm(None, 'Delete zip-file after decompression was selected.\nDo you want to delete it?') == YES:
                     os.remove(zip_file)
         print 'Results decompressed'
