@@ -431,8 +431,9 @@ class Postprocessor(HasTraits):
     export_file_data = Property(Str, depends_on='monitor_export_file')
     @cached_property
     def _get_export_file_data(self):
-        with open(os.path.join(self.project_info.project_dir, 'monitor_export.inp'), 'r') as infile:
-            return infile.read()
+        if os.path.exists(self.monitor_export_file):
+            with open(self.monitor_export_file, 'r') as infile:
+                return infile.read()
 
     monitor_export = Button('Export')
     def _monitor_export_fired(self):
