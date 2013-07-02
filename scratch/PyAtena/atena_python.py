@@ -490,7 +490,8 @@ class Archiver(HasTraits):
     compress = Button
     def _compress_fired(self):
         ask_again = True
-        if confirm(None, 'Delete directory "results" after compression  was selected.\nDo you want to delete it for all selected tasks?') == YES:
+        delete = confirm(None, 'Delete directory "results" after compression  was selected.\nDo you want to delete it for all selected tasks?')
+        if delete == YES:
             ask_again = False
         for task in self.task_selector.evaluated_tasks:
             task_dir = os.path.join(self.project_info.project_dir, task)
@@ -502,15 +503,18 @@ class Archiver(HasTraits):
                     zf.write(os.path.join(dirname, filename),
                              os.path.join('results', filename))
             zf.close()
-            if ask_again:
+            if delete and ask_again:
                 if confirm(None, 'Delete directory "results" after compression was selected.\nDo you want to delete it?') == YES:
                     shutil.rmtree(results_dir)
+            elif delete:
+                shutil.rmtree(results_dir)
         print 'Results compressed'
 
     decompress = Button
     def _decompress_fired(self):
         ask_again = True
-        if confirm(None, 'Delete zip-file after decompression was selected.\nDo you want to delete it for all selected tasks?') == YES:
+        delete = confirm(None, 'Delete zip-file after decompression was selected.\nDo you want to delete it for all selected tasks?')
+        if delete == YES:
             ask_again = False
         for task in self.task_selector.evaluated_tasks:
             task_dir = os.path.join(self.project_info.project_dir, task)
@@ -519,9 +523,11 @@ class Archiver(HasTraits):
             zf = zipfile.ZipFile(zip_file, 'r')
             zf.extractall(task_dir)
             zf.close()
-            if ask_again:
+            if delete and ask_again:
                 if confirm(None, 'Delete zip-file after decompression was selected.\nDo you want to delete it?') == YES:
                     os.remove(zip_file)
+            elif delete:
+                os.remove(zip_file)
         print 'Results decompressed'
 
     view = View(
