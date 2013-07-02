@@ -394,7 +394,7 @@ class Solver(HasTraits):
         '''
         if len(cmd_lst) > 1:
             arg_lst = zip(cmd_lst, task_lst, task_num_lst)
-            execute_pool(run_cmd, self.task_info.cpu_num, arg_lst, kwds)
+            execute_pool(run_cmd, self.project_info.cpu_num, arg_lst, kwds)
         else:
             run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], **kwds)
 
@@ -467,7 +467,7 @@ class Postprocessor(HasTraits):
         '''
         if len(cmd_lst) > 1:
             arg_lst = zip(cmd_lst, task_lst, task_num_lst)
-            execute_pool(run_cmd, self.task_info.cpu_num, arg_lst, kwds)
+            execute_pool(run_cmd, self.project_info.cpu_num, arg_lst, kwds)
         else:
             run_cmd(cmd_lst[0], task_lst[0], task_num_lst[0], **kwds)
 
