@@ -206,7 +206,8 @@ def fit_data_leastsq(f, x, y, p0=None):
     return f(x, *plsq[0]), plsq
 
 
+def mpexp_(x):
+    return mp.exp(x)
 
-
-
+mpexp = np.frompyfunc(mpexp_, 1, 1)
 
