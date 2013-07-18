@@ -2,29 +2,159 @@ import os
 os.environ['MPMATH_NOGMPY'] = 'Y'
 import numpy as np
 import matplotlib.pyplot as plt
-from fn_lib import weib_cdf_vect, weibul_plot_vect
+from fn_lib import weib_cdf_vect, weibul_plot_vect, mpexp, weib_cdf_vect
+from scipy.interpolate import interp1d
+import mpmath as mp
 
 rec_dir = r'/media/data/Documents/postdoc/2013/rekurze/recursion_database/'
 
-shape = 6
+#===============================================================================
+# n = 3
+#===============================================================================
+shape = 100
 scale = 1.0
-n_fil = 10
+n_fil = 3
 m_dir = 'm=%05.1f' % shape
 n_dir = 'm=%05.1f_n=%04d' % (shape, n_fil)
 
 x = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-x' + '.npy'))
-sn = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-sn' + '.npy'))
+# sn = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-sn' + '.npy'))
 ln_x = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-ln_x' + '.npy'))
+ln_x_diff = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-ln_x_diff' + '.npy'))
 gn_wp = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-gn_wp' + '.npy'))
+gn_diff = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-gn_diff' + '.npy'))
 weibl_wp = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-weibl_wp' + '.npy'))
 
-weibl2_wp = weibul_plot_vect(weib_cdf_vect(x, shape * n_fil, sn))
+p = np.array([-0.9])
+k = np.arange(2, p.size + 2)
+f = interp1d(ln_x, gn_wp)
+f_diff = interp1d(ln_x_diff, gn_diff)
+gk = f(p)
+sk = mpexp(p) / mpexp(gk / shape / k)
+print sk
 
-print 6 * 10 * (-4) - np.log(float(sn)) * 6 * 10
+plt.figure()
+plt.subplot(121)
+plt.plot(ln_x_diff, gn_diff)
+plt.plot(p, f_diff(p), 'ro')
 
+plt.subplot(122)
 plt.plot(ln_x, gn_wp)
 plt.plot(ln_x, weibl_wp)
-plt.plot(ln_x, weibl2_wp)
+plt.plot(p, gk, 'ro')
+for k_, s in zip(k, sk):
+    plt.plot(ln_x, weibul_plot_vect(weib_cdf_vect(x, shape * k_, s)))
+
+#===============================================================================
+# n = 4
+#===============================================================================
+shape = 100
+scale = 1.0
+n_fil = 4
+m_dir = 'm=%05.1f' % shape
+n_dir = 'm=%05.1f_n=%04d' % (shape, n_fil)
+
+x = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-x' + '.npy'))
+# sn = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-sn' + '.npy'))
+ln_x = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-ln_x' + '.npy'))
+ln_x_diff = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-ln_x_diff' + '.npy'))
+gn_wp = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-gn_wp' + '.npy'))
+gn_diff = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-gn_diff' + '.npy'))
+weibl_wp = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-weibl_wp' + '.npy'))
+
+p = np.array([-1.2, -0.6])
+k = np.arange(2, p.size + 2)[::-1]
+f = interp1d(ln_x, gn_wp)
+f_diff = interp1d(ln_x_diff, gn_diff)
+gk = f(p)
+sk = mpexp(p) / mpexp(gk / shape / k)
+print sk
+
+plt.figure()
+plt.subplot(121)
+plt.plot(ln_x_diff, gn_diff)
+plt.plot(p, f_diff(p), 'ro')
+
+plt.subplot(122)
+plt.plot(ln_x, gn_wp)
+plt.plot(ln_x, weibl_wp)
+plt.plot(p, gk, 'ro')
+for k_, s in zip(k, sk):
+    plt.plot(ln_x, weibul_plot_vect(weib_cdf_vect(x, shape * k_, s)))
+plt.show()
+#===============================================================================
+# n = 5
+#===============================================================================
+shape = 100
+scale = 1.0
+n_fil = 5
+m_dir = 'm=%05.1f' % shape
+n_dir = 'm=%05.1f_n=%04d' % (shape, n_fil)
+
+x = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-x' + '.npy'))
+# sn = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-sn' + '.npy'))
+ln_x = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-ln_x' + '.npy'))
+ln_x_diff = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-ln_x_diff' + '.npy'))
+gn_wp = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-gn_wp' + '.npy'))
+gn_diff = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-gn_diff' + '.npy'))
+weibl_wp = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-weibl_wp' + '.npy'))
+
+p = np.array([-1.5, -0.8, -0.467])
+k = np.arange(2, p.size + 2)[::-1]
+f = interp1d(ln_x, gn_wp)
+f_diff = interp1d(ln_x_diff, gn_diff)
+gk = f(p)
+sk = mpexp(p) / mpexp(gk / shape / k)
+print sk
+
+plt.figure()
+plt.subplot(121)
+plt.plot(ln_x_diff, gn_diff)
+plt.plot(p, f_diff(p), 'ro')
+
+plt.subplot(122)
+plt.plot(ln_x, gn_wp)
+plt.plot(ln_x, weibl_wp)
+plt.plot(p, gk, 'ro')
+for k_, s in zip(k, sk):
+    plt.plot(ln_x, weibul_plot_vect(weib_cdf_vect(x, shape * k_, s)))
+
+#===============================================================================
+# n = 6
+#===============================================================================
+shape = 40
+scale = 1.0
+n_fil = 6
+m_dir = 'm=%05.1f' % shape
+n_dir = 'm=%05.1f_n=%04d' % (shape, n_fil)
+
+x = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-x' + '.npy'))
+# sn = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-sn' + '.npy'))
+ln_x = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-ln_x' + '.npy'))
+ln_x_diff = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-ln_x_diff' + '.npy'))
+gn_wp = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-gn_wp' + '.npy'))
+gn_diff = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-gn_diff' + '.npy'))
+weibl_wp = np.load(os.path.join(rec_dir, m_dir, n_dir, n_dir + '-weibl_wp' + '.npy'))
+
+p = np.array([-1.5, -1, -.65, -.378])
+k = np.arange(2, p.size + 2)[::-1]
+f = interp1d(ln_x, gn_wp)
+f_diff = interp1d(ln_x_diff, gn_diff)
+gk = f(p)
+sk = mpexp(p) / mpexp(gk / shape / k)
+print sk
+
+plt.figure()
+plt.subplot(121)
+plt.plot(ln_x_diff, gn_diff)
+plt.plot(p, f_diff(p), 'ro')
+
+plt.subplot(122)
+plt.plot(ln_x, gn_wp)
+plt.plot(ln_x, weibl_wp)
+plt.plot(p, gk, 'ro')
+for k_, s in zip(k, sk):
+    plt.plot(ln_x, weibul_plot_vect(weib_cdf_vect(x, shape * k_, s)))
 
 plt.show()
 
