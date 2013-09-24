@@ -48,13 +48,13 @@ for i, line in enumerate(data):
 
 outfile = open('fre.txt', 'w')
 
-for i in category_names:
-    outfile.write('{:s}\t'.format(i))
+for i, j in zip(category_names, variable_names):
+    outfile.write('{:s}{:s}\t'.format(i, j))
 outfile.write('\n')
 
-for i in variable_names:
-    outfile.write('{:s}\t'.format(i))
-outfile.write('\n')
+# for i in variable_names:
+#     outfile.write('{:s}\t'.format(i))
+# outfile.write('\n')
 
 
 for j in range(nsim):

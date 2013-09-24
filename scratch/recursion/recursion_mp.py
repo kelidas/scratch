@@ -160,11 +160,11 @@ if __name__ == '__main__':
     import doctest
     doctest.testmod()
 
-    mp.mp.dps = 100
+    mp.mp.dps = 1000
     shape = mp.mpf('6.')
     scale = mp.mpf('1.')
-    n_fil = mp.mpf('10')
-    x1 = mp.exp(mp.mpf('-1'))
+    n_fil = mp.mpf('12')
+    x1 = mp.mpf('.6')  # mp.exp(mp.mpf('-1'))
 
     recursion_gn_mp = gn_mp_vect(x1, scale, shape, n_fil, True)
     print 'Result of recursion_gn_mp for one x value =', recursion_gn_mp

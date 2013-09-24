@@ -10,10 +10,6 @@
 using namespace std;
 #include "BinomicLookup.h"
 
-clock_t zac,kon,simSTART,simKONEC;
-
-double Binomic(int n, int k);
-
 mpfr_t MPF_ZERO, MPF_ONE;
 
 // Distribution function of one filament.
@@ -24,7 +20,7 @@ int Weibull(mpfr_t& weib_val,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_rnd_t rn
     };
     mpfr_set(weib_val,MPF_ZERO, rnd);
     mpfr_div (weib_val, x,scale,rnd);
-	mpfr_pow (weib_val, weib_val,shape,rnd);
+	 mpfr_pow (weib_val, weib_val,shape,rnd);
     mpfr_neg (weib_val,weib_val,rnd);
     mpfr_exp (weib_val, weib_val,rnd);
     mpfr_sub (weib_val, MPF_ONE, weib_val, rnd);
@@ -33,16 +29,16 @@ int Weibull(mpfr_t& weib_val,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_rnd_t rn
 }
 
 // Recursion function. Distribution of the yarn strength.
-int Gn(mpfr_t& gn_val,mpfr_t& gn_ret,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_t n, mpfr_rnd_t rnd){
+int Gn(mpfr_t& gn_val,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_t n, mpfr_rnd_t rnd){
 // 	if( mpfr_cmp_ui(n, 1) < 0 ) {
 //         mpfr_set(gn_val,MPF_ZERO, rnd);
 //         mpfr_printf( "ted1 = %.1000Rg\n",gn_val);
 //         return 0;
 //     };
-    mpfr_set(gn_ret, MPF_ONE, rnd); 
+    mpfr_set(gn_val, MPF_ONE, rnd); 
     if( mpfr_cmp_ui(n, 1) == 0 ) {
-        Weibull(gn_ret, x, scale, shape, rnd);
-        //mpfr_printf( "ted2 = %.100Rg\n",gn_ret);
+        Weibull(gn_val, x, scale, shape, rnd);
+        //mpfr_printf( "ted2 = %.100Rg\n",gn_val);
         return 0;
     };
     mpfr_t cdfx, vysl_1, vysl, cdfk, komb, new_x, new_d;
@@ -63,11 +59,11 @@ int Gn(mpfr_t& gn_val,mpfr_t& gn_ret,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_
 		mpfr_set_d(komb, komb_d, rnd);
 		if(( k%2 ) == 0) mpfr_neg(komb, komb, rnd);
         mpfr_mul(vysl_1, komb, cdfk, rnd);
-        mpfr_set_ui(new_d, n_int-k, rnd);
+        mpfr_sub_ui(new_d, n, k, rnd);
         mpfr_div(new_x, n, new_d, rnd);
         mpfr_mul(new_x, new_x, x, rnd);
-        Gn(gn_val,gn_ret, new_x, scale, shape, new_d,rnd);
-        mpfr_mul(vysl_1, vysl_1, gn_ret, rnd);
+        Gn(gn_val, new_x, scale, shape, new_d,rnd);
+        mpfr_mul(vysl_1, vysl_1, gn_val, rnd);
         mpfr_add(vysl, vysl, vysl_1, rnd);
         //mpfr_printf( "ted = %.100Rg\n",gn_val);
 	}
@@ -81,10 +77,11 @@ int Gn(mpfr_t& gn_val,mpfr_t& gn_ret,mpfr_t x, mpfr_t scale, mpfr_t shape, mpfr_
 	else				{ 
         mpfr_add(vysl, vysl, cdfk,rnd);	 
             }
-    mpfr_set(gn_ret, vysl, rnd);
+    mpfr_set(gn_val, vysl, rnd);
     //mpfr_sub(gn_val, gn_val, vysl, rnd);
     mpfr_set(gn_val, vysl, rnd);
     
+    mpfr_clears (cdfx, vysl_1, vysl, cdfk, komb, new_x, new_d, (mpfr_ptr) 0);
 	//return vysl_1;
     return 0;
 }
@@ -127,24 +124,28 @@ int main(){
     mpfr_printf( "x = %.1000Rg\n",x);
     mpfr_printf( "scale = %.1000Rg\n",scale);
     mpfr_printf( "shape = %.1000Rg\n",shape);
-    mpfr_printf( "shape = %.1000Rg\n",shape);
+    mpfr_printf( "n = %.1000Rg\n",vlaken);
     
-    Weibull(weib_val,x,scale,shape,GMP_RNDN);
-    mpfr_printf( "weib = %.1000Rg\n",vlaken);
+    //Weibull(weib_val,x,scale,shape,GMP_RNDN);
+    
     
     
     double start = clock();
-    Gn(gn_val,gn_ret, x, scale, shape, vlaken, GMP_RNDN);
-    cout << "time = " << (clock() - start)/(double)CLOCKS_PER_SEC << endl;
+    Gn(gn_val, x, scale, shape, vlaken, GMP_RNDN);
+    double t = (clock() - start)/(double)CLOCKS_PER_SEC;
+    cout << "time = " << t << endl;
     mpfr_printf( "gn = %.1000Rg\n",gn_val);
     
-    mpfr_t g,h,r;
-    mpfr_inits(g,h,r,(mpfr_ptr) 0);
-    inex = mpfr_set_str (g, "1.0",10, GMP_RNDN); assert (inex == 0);
-    inex = mpfr_set_str (h, "3.0",10, GMP_RNDN); assert (inex == 0);
-    mpfr_div(r,g,h,GMP_RNDN);
-    mpfr_printf( "gn = %.1000Rg\n",r);
+    //mpfr_t g,h,r;
+    //mpfr_inits(g,h,r,(mpfr_ptr) 0);
+    //inex = mpfr_set_str (g, "1.0",10, GMP_RNDN); assert (inex == 0);
+    //inex = mpfr_set_str (h, "3.0",10, GMP_RNDN); assert (inex == 0);
+    //mpfr_div(r,g,h,GMP_RNDN);
+    //mpfr_printf( "gn = %.1000Rg\n",r);
     
+    mpfr_clears (x, scale, shape, weib_val, gn_val, vlaken,gn_ret, (mpfr_ptr) 0);
+    mpfr_clears (MPF_ZERO, MPF_ONE, (mpfr_ptr) 0);
+    mpfr_free_cache ();
 	
 // 
 // 	//double mu,std;
