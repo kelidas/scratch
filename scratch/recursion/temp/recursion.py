@@ -79,7 +79,7 @@ if __name__ == '__main__':
     #===============================================================================
     shape = 6.
     scale = 1.
-    n = 50.
+    n = 3.
 
     param_arr = np.zeros((n, n, 1000), dtype=np.float64)
     x_arr = np.array([], dtype=np.float64)
@@ -92,9 +92,10 @@ if __name__ == '__main__':
     #===============================================================================
     xx = -0.3
     xx = np.exp(xx)
+    xx = .8
     #----- Original implementation
     start = sysclock()
-    gn = 0  # Gn(xx, scale, shape, n)
+    gn = Gn(xx, scale, shape, n)
     print 'Gn time =', sysclock() - start
     start = sysclock()
     #----- Modified implementation

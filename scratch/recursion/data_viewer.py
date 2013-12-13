@@ -607,6 +607,75 @@ class TangentParameterPlot(BasePlot):
                        )
 
 
+class ParameterPlot(BasePlot):
+
+    name = 'Parameters plot'
+
+    var_sel = Enum(['dn', 'sn', 'dk', 'sk'])
+    plot_linreg = Bool(False)
+
+    def _draw_fired(self):
+        axes = self.figure.axes[0]
+        if self.clear_on:
+            axes.clear()
+        axes.set_title(self.name)
+        yn = []
+        n = []
+        if self.var_sel == 'dn' or self.var_sel == 'sn':
+            if self.plot_selector.n_filter_on:
+                for i in self.plot_selector.plot_list:
+                    yn.append(mp.log(getattr(self.data, self.var_sel)[i].reshape(1)[0]))
+                    n.append(self.data.shape[i])
+                axes.set_xlabel('shape')
+            else:
+                for i in self.plot_selector.plot_list:
+                    yn.append(mp.log(getattr(self.data, self.var_sel)[i].reshape(1)[0]))
+                    n.append(self.data.number_of_filaments[i])
+                axes.set_xlabel('number of filaments')
+            axes.set_ylabel('log(%s)' % self.var_sel)
+            n = np.array(n, dtype=object)
+            yn = np.array(yn, dtype=object)
+            axes.plot(n, yn, 'k-x')
+
+        if self.var_sel == 'dk' or self.var_sel == 'sk':
+            axes.set_title(self.name + ' - approximation')
+            for i in self.plot_selector.plot_list:
+                yn = []
+                xn = []
+                for j in getattr(self.data, self.var_sel)[i]:
+                    yn.append(mp.log(j))
+
+                axes.plot(np.ones_like(yn) * self.data.number_of_filaments[i],
+                              yn, 'kx')
+                axes.set_xlabel('n')
+                axes.set_ylabel('log(%s)' % self.var_sel)
+
+
+        if self.plot_linreg:
+            slope, intercept, r_value, p_value, std_err = stats.linregress(n, yn)
+            print 'slope =', slope, ', intercept =', intercept
+            print 'coefficient of determination =', r_value ** 2
+            axes.plot(n, slope * n + intercept, 'r--')
+
+        self.figure.canvas.draw()
+
+    traits_view = View(
+                       'clear_on',
+                       Group(
+                             Item('var_sel', style='custom', show_label=False,
+                                   editor=EnumEditor(values=var_sel.values, cols=2)),
+                             show_border=True,
+                             label='data select',
+                             ),
+                       Item('plot_linreg', tooltip='plot linear regression of the last curve only'),
+                       HGroup(
+                              Item('draw', show_label=False, springy=True),
+                              Item('delete_last_one', show_label=False, springy=True),
+                       ),
+                       id='plot.main'
+                       )
+
+
 class PDFPlot(BasePlot):
     name = 'PDF plot'
     gn_on = Bool(True)
@@ -823,6 +892,7 @@ class ControlPanel(HasTraits):
                              'cdf_plot',
                              'diff_plot',
                              'tangent parameter plot',
+                             'parameter plot',
                              'base',
                              ],
                       klasses=[WPPlot,
@@ -830,6 +900,7 @@ class ControlPanel(HasTraits):
                                CDFPlot,
                                DiffPlot,
                                TangentParameterPlot,
+                               ParameterPlot,
                                BasePlot,
                                ])
 

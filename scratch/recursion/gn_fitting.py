@@ -155,8 +155,8 @@ axes.yaxis.set_major_formatter(FuncFormatter(formatter))
 
 table = np.loadtxt('txt_data/weib_diff_fit.txt', delimiter=';')
 # <codecell>
-shape = 6
-n_fil = 500
+shape = 50
+n_fil = 100
 
 m_dir = 'm=%05.1f' % shape
 n_dir = 'm=%05.1f_n=%04d' % (shape, n_fil)
@@ -179,7 +179,10 @@ q = -shape * n_fil * mp.log(sn)
 print sn, shape, scale, n_fil
 c = sp.Symbol('c')
 WGn_m_asym = WGn_shape + c - k * x - q
-sp.limit(WGn_m_asym.subs({x:lx, n:n_fil, l_f:l_fit, s_f:s_fit, m_f:m_fit, m:shape}), x, -sp.oo)
+res = sp.limit(WGn_m_asym.subs({n:n_fil, l_f:l_fit, s_f:s_fit, m_f:m_fit, m:shape}), x, -sp.oo)
+print res, sp.solve(res, c)
+
+# print sp.limit(WGn_m_asym.subs({n:n_fil, l_f:l_fit, s_f:s_fit, m_f:m_fit, m:shape}) / x, x, -sp.oo)
 
 # <codecell>
 

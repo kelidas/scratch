@@ -39,8 +39,8 @@ res_lst = ['x',
            'dn',
            'weibl_wp',
            'weibl_cdf',
-           # 'sk',
-           # 'dk'
+           'sk',
+           'dk'
            ]
 
 def send_email_smtp(sender, receiver, email):
