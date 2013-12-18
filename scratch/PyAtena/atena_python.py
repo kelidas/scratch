@@ -389,7 +389,6 @@ class Solver(HasTraits):
                        self.task_selector.evaluated_tasks,
                        self.task_selector.evaluated_tasks_nums, {})
 
-    def __execute(self, cmd_lst, task_lst, task_num_lst, kwds):
         '''Execute tasks with multiprocessing.Pool
         '''
         if len(cmd_lst) > 1:
