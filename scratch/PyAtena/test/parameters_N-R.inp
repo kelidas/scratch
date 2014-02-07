@@ -1,0 +1,30 @@
+//----------------------------------------------------------------------------\\
+//                            Parameters N-R                                  \\
+//----------------------------------------------------------------------------\\
+
+// Parameters N-R_100iteraci
+SET Static
+SET SOLVE_LHS_BCS_OFF
+SET Newton-Raphson
+SET Iteration Limit 100
+SET Displacement Error 0.010000
+SET Residual Error 0.010000
+SET Absolute Residual Error 0.010000
+SET Energy Error 0.000100
+SET iter_stop_displacement error factor 10000.0
+SET step_stop_displacement error factor 1000.0
+SET iter_stop_residual error factor 10000.0
+SET step_stop_residual error factor 1000.0
+SET iter_stop_energy error factor 1000000.0
+SET step_stop_energy error factor 10000.0
+SET Optimize Band Width Sloan
+SET Line-Search
+ LINE_SEARCH_WITHOUT_ITERATIONS
+ MINIMUM_ETA       0.010
+ MAXIMUM_ETA       1.000
+SET Full_NR
+SET TANGENT_PREDICTOR
+
+//----------------------------------------------------------------------------\\
+//                                 Executing                                  \\
+//----------------------------------------------------------------------------\\
