@@ -1,5 +1,28 @@
 import time
-from pyface.api import ProgressDialog
+from pyface.api import ProgressDialog, confirm
+import os
+import numpy as np
+import wx
+
+app = wx.PySimpleApp()
+wildcard = "Python source (*.py)|*.py|" \
+        "Compiled Python (*.pyc)|*.pyc|" \
+        "All files (*.*)|*.*"
+dlg = wx.MessageDialog(None, "Run program?",
+                  'Power over DeltaT',
+                  wx.YES_NO | wx.ICON_QUESTION)
+retCode = dlg.ShowModal()
+if (retCode == wx.ID_YES):
+    dialog = wx.FileDialog(None, "File", os.getcwd(), "", wildcard, wx.OPEN)
+    if dialog.ShowModal() == wx.ID_OK:
+        x, y, z = np.loadtxt(dialog.GetPath(), dtype=float, delimiter=',',
+                             skiprows=2, usecols=(6, 18, 19), unpack=True)
+        dialog.Destroy()
+        print x
+        f = (z - y) / (x + .01)
+        average = np.sum(f) / f.shape[0]
+        print average
+dlg.Destroy()
 
 
 def task_func(t):
@@ -19,7 +42,7 @@ def task_func(t):
 
 def task_func2(t):
     progress = ProgressDialog(title="progress", message="running", show_time=False,
-                              can_cancel=False)
+                             max=t, can_cancel=False)
     progress.open()
 
     for i in range(0, t + 1):
@@ -28,6 +51,7 @@ def task_func2(t):
         progress.update(i)
 
     progress.update(t)
+    progress.close()
 
 # task_func(10)
 task_func2(100)

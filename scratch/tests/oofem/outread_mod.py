@@ -99,6 +99,7 @@ class OOData(HasTraits):
                 l = input_file.readline()
             step += 1
         input_file.close()
+        print 'reaction data loaded'
         return data
 
     dof_data = Property(Array, depends_on='+source_modified')
@@ -125,6 +126,7 @@ class OOData(HasTraits):
                 l = input_file.readline()
             step += 1
         input_file.close()
+        print 'dof data loaded'
         return data
 
     displ_mask = Property(Array)
@@ -228,28 +230,28 @@ class OOReader(HasTraits):
             axes.plot(x, y, 'b-x', linewidth=2)
             axes.set_title(os_path_split(self.data.out_file)[-1])
             axes.set_xlabel('step', fontsize=16)
-            axes.set_ylabel('step', fontsize=16)#, fontsize = 16
+            axes.set_ylabel('step', fontsize=16)  # , fontsize = 16
         elif self.data.step_x == True and self.data.step_y == False:
             x = self.data.plot_displ_step[1]
             y = self.data.plot_reaction_step[0]
             axes.plot(x, y, 'b-x', linewidth=2)
             axes.set_title(os_path_split(self.data.out_file)[-1])
             axes.set_xlabel('step', fontsize=16)
-            axes.set_ylabel('force', fontsize=16)#, fontsize = 16
+            axes.set_ylabel('force', fontsize=16)  # , fontsize = 16
         elif self.data.step_x == False and self.data.step_y == True:
             x = self.data.plot_displ_step[0]
             y = self.data.plot_reaction_step[1]
             axes.plot(x, y, 'b-x', linewidth=2)
             axes.set_title(os_path_split(self.data.out_file)[-1])
             axes.set_xlabel('displ', fontsize=16)
-            axes.set_ylabel('step', fontsize=16)#, fontsize = 16
+            axes.set_ylabel('step', fontsize=16)  # , fontsize = 16
         else:
             x = self.data.plot_displ_step[0]
             y = self.data.plot_reaction_step[0]
             axes.plot(x, y, 'b-x', linewidth=2)
             axes.set_title(os_path_split(self.data.out_file)[-1])
             axes.set_xlabel('displ', fontsize=16)
-            axes.set_ylabel('force', fontsize=16)#, fontsize = 16
+            axes.set_ylabel('force', fontsize=16)  # , fontsize = 16
         plt.setp(axes.get_xticklabels(), position=(0, -.01))
         self.data_changed = True
 

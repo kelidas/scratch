@@ -37,7 +37,7 @@ Basic probability density function
     c_code = '''
             '''
 
-def run(mu, cov, plot = True):
+def run(mu, cov, plot=True):
 
     # discretize the control variable (x-axis)
     x_arr = np.linspace(0, 10.0, 1000)[1:]
@@ -45,17 +45,17 @@ def run(mu, cov, plot = True):
     #===========================================================================
     # Randomization
     #===========================================================================
-    s = SPIRRID(q = BasicPDF(),
-                e_arr = x_arr,
-                n_int = 100,
-                tvars = dict(mu = mu,
-                             cov = cov
+    s = SPIRRID(q=BasicPDF(),
+                e_arr=x_arr,
+                n_int=100,
+                tvars=dict(mu=mu,
+                             cov=cov
                              ),
-                sampling_type = 'TGrid',
-                codegen_type = 'numpy',
+                sampling_type='TGrid',
+                codegen_type='numpy',
                 )
-    #s.codegen.cached_dG = False
-    #s.codegen.compiled_eps_loop = False
+    # s.codegen.cached_dG = False
+    # s.codegen.compiled_eps_loop = False
 
     #===========================================================================
     # Calculate
@@ -86,7 +86,7 @@ def run(mu, cov, plot = True):
     sample_args = [ sam[:, np.newaxis] for sam in samples]
     q_arr = s.q(x_arr[None, :], *sample_args)
 
-    emp_data = np.loadtxt('data_emp.txt', delimiter = '\t')
+    emp_data = np.loadtxt('data_emp.txt', delimiter='\t')
 
     #===========================================================================
     # Print
@@ -107,56 +107,56 @@ def run(mu, cov, plot = True):
         p.figure()
         p.title(mu.type)
         # plot samples
-        #p.plot(x_arr, q_arr.T, color = 'gray')
+        # p.plot(x_arr, q_arr.T, color = 'gray')
         for s in q_arr:
-            p.plot(x_arr, s, color = 'gray', linewidth = mu.pdf((s * x_arr).sum() / 100.) * 5)
+            p.plot(x_arr, s, color='gray', linewidth=mu.pdf((s * x_arr).sum() / 100.) * 5)
         # plot compounded distribution
-        p.plot(x_arr, cpd_pdf, 'b-', label = 'cpd')
+        p.plot(x_arr, cpd_pdf, 'b-', label='cpd')
         # plot lognormal distribution, method of moments
-        p.plot(x_arr, lognorm_pdf, color = 'red', linewidth = 2, label = 'lognorm')
-        p.plot(x_arr, lognormal_pdf(x_arr, np.mean(emp_data[:, 0]), np.std(emp_data[:, 0])), color = 'cyan', linewidth = 2, label = 'lognorm_data')
-        p.plot(x_arr, mu.pdf(x_arr), color = 'green', label = 'mu_dist')
+        p.plot(x_arr, lognorm_pdf, color='red', linewidth=2, label='lognorm')
+        p.plot(x_arr, lognormal_pdf(x_arr, np.mean(emp_data[:, 0]), np.std(emp_data[:, 0])), color='cyan', linewidth=2, label='lognorm_data')
+        p.plot(x_arr, mu.pdf(x_arr), color='green', label='mu_dist')
         p.legend()
 
         p.figure()
         p.title(mu.type)
-        p.plot(emp_data[:, 0], emp_data[:, 1], 'k-', linewidth = 3, label = 'emp')
-        p.plot(x_arr, cpd_cdf, 'b-', label = 'cpd')
+        p.plot(emp_data[:, 0], emp_data[:, 1], 'k-', linewidth=3, label='emp')
+        p.plot(x_arr, cpd_cdf, 'b-', label='cpd')
         # plot lognormal CDF, method of moments
-        p.plot(x_arr, lognorm_cdf, color = 'red', linewidth = 2, label = 'lognorm')
-        p.plot(x_arr, lognormal_cdf(x_arr, np.mean(emp_data[:, 0]), np.std(emp_data[:, 0])), color = 'cyan', linewidth = 2, label = 'lognorm_data')
+        p.plot(x_arr, lognorm_cdf, color='red', linewidth=2, label='lognorm')
+        p.plot(x_arr, lognormal_cdf(x_arr, np.mean(emp_data[:, 0]), np.std(emp_data[:, 0])), color='cyan', linewidth=2, label='lognorm_data')
         p.legend()
 
         p.figure()
         p.title(mu.type)
-        p.loglog(emp_data[:, 0], emp_data[:, 1], 'k-', linewidth = 3, label = 'emp')
-        p.loglog(x_arr, cpd_cdf, 'b-', label = 'cpd')
-        p.loglog(x_arr, lognorm_cdf, color = 'red', linewidth = 2, label = 'lognorm')
-        p.loglog(x_arr, lognormal_cdf(x_arr, np.mean(emp_data[:, 0]), np.std(emp_data[:, 0])), color = 'cyan', linewidth = 2, label = 'lognorm_data')
+        p.loglog(emp_data[:, 0], emp_data[:, 1], 'k-', linewidth=3, label='emp')
+        p.loglog(x_arr, cpd_cdf, 'b-', label='cpd')
+        p.loglog(x_arr, lognorm_cdf, color='red', linewidth=2, label='lognorm')
+        p.loglog(x_arr, lognormal_cdf(x_arr, np.mean(emp_data[:, 0]), np.std(emp_data[:, 0])), color='cyan', linewidth=2, label='lognorm_data')
         p.legend()
 
-    #p.show()
+    # p.show()
     return rms_err
 
 
 
 
 if __name__ == '__main__':
-    from stats.pdistrib import beta_distr
+    from pdistrib import beta_distr
     import os
     FILE_DIR = os.path.dirname(beta_distr.__file__)
 
 
-    m_mu, std_mu = 3.2126, 0.655 # var = 0.429025
+    m_mu, std_mu = 3.2126, 0.655  # var = 0.429025
     alp, bet, a, b = beta_par(m_mu, std_mu, 0, 1e10)
-    np.savetxt(os.path.join(FILE_DIR, 'distr_par.txt'), [[alp, bet]], delimiter = ',')
-    m_cov, std_cov = 0.17, .07 #0.067
+    np.savetxt(os.path.join(FILE_DIR, 'distr_par.txt'), [[alp, bet]], delimiter=',')
+    m_cov, std_cov = 0.17, .07  # 0.067
     print alp, bet
 
-    cov = .17 #RV('norm', m_cov, std_cov)#RV('uniform', 0.049276, 0.29072) # 0.17
+    cov = .17  # RV('norm', m_cov, std_cov)#RV('uniform', 0.049276, 0.29072) # 0.17
 
     run_args = dict(
-                    beta = dict(mu = RV('beta_distr', loc = a, scale = (b - a)), cov = cov),
+                    beta=dict(mu=RV('beta_distr', loc=a, scale=(b - a)), cov=cov),
                     )
 
     run(**run_args['beta'])
@@ -168,14 +168,14 @@ if __name__ == '__main__':
 #        beta = dict(mu = RV('beta', shape = [alp, bet], loc = a, scale = (b - a)), cov = cov)
 #        return run(plot = False, **beta)
 
-    #f_vec = np.vectorize(residuum)
-    #res = f_vec(np.linspace(3.4, 100, 1000))
-    #print res
-    #print np.min(res)
-    #print np.argmin(res)
+    # f_vec = np.vectorize(residuum)
+    # res = f_vec(np.linspace(3.4, 100, 1000))
+    # print res
+    # print np.min(res)
+    # print np.argmin(res)
 
-    #print fsolve(residuum, 20)
-    #print brute(residuum, ((3.4, 20)))
-    #print anneal(residuum, 10)
+    # print fsolve(residuum, 20)
+    # print brute(residuum, ((3.4, 20)))
+    # print anneal(residuum, 10)
 
     p.show()
