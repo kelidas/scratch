@@ -479,10 +479,10 @@ class DiffPlot(BasePlot):
                         plt.title('PDF')
                         x = self.data.x[i].astype(float)
                         plt.plot((x[1:] + x[:-1]) * 0.5,
-                                 differentiate(x, self.data.gn_cdf[i].astype(float)),
+                                 differentiate(x, self.data.gn_cdf[i]),
                                  'b-', label='gn')
                         plt.plot((x[1:] + x[:-1]) * 0.5,
-                                 differentiate(x, self.data.norm_cdf[i].astype(float)),
+                                 differentiate(x, self.data.norm_cdf[i]),
                                  'k--', label='norm')
                         plt.plot((np.exp(x_int)[1:] + np.exp(x_int)[:-1]) * 0.5,
                                  differentiate(np.exp(x_int), antiweibul_plot_vect(y_int + pos)),

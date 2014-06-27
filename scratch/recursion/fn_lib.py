@@ -62,10 +62,15 @@ def sn_mp(dn, scale, shape, n):
     '''
     return scale / dn ** (MPF_ONE / (n * shape))
 
+# def differentiate(x, y):
+#     '''Calculate the derivatives for given arrays x and y
+#     '''
+#     return np.diff(y) / np.diff(x)
+
 def differentiate(x, y):
     '''Calculate the derivatives for given arrays x and y
     '''
-    return np.diff(y) / np.diff(x)
+    return (y[1:] - y[:-1]) / (x[1:] - x[:-1])
 
 def integrate(x, y):
     '''Calculate the integral for given arrays x and y

@@ -3,10 +3,9 @@ import os
 import sys
 import subprocess
 
-
-PC_LIST = [101, 102, 103, 104, 105, 106, 40, 108, 109, 110, 111, 112, 113, 114,
+# 101
+PC_LIST = [102, 103, 104, 105, 106, 29, 108, 109, 110, 111, 112, 113, 114,
            115, 116, 117, 118, 119, 121, 122, 123, 124, 125, 126]
-# PC_LIST = [40]
 for i in PC_LIST:
     print '#' * 10, i, '#' * 30
     # IPCONFIG
@@ -23,7 +22,7 @@ for i in PC_LIST:
 
     # REMOTE DESKTOP
     # rdesktop -u Teacher -p 2bD318xM -g 95% -PKD 147.229.29.101 -r clipboard:PRIMARYCLIPBOARD
-    # subprocess.call(['rdesktop', '-uTeacher', '-p2bD318xM', '-g90%', '-PKD', '-rclipboard:PRIMARYCLIPBOARD', '147.229.29.%i' % i])
+    subprocess.call(['rdesktop', '-uTeacher', '-p2bD318xM', '-g90%', '-PKD', '-rclipboard:PRIMARYCLIPBOARD', '147.229.29.%i' % i])
 
     # UPLOAD DESKTOP WALLPAPER
     # os.system('scp gen_wallpaper/wallpaper.jpg Teacher@147.229.29.%i:/cygdrive/c/Windows/Web/Wallpaper/Windows/wallpaper.jpg' % i)
@@ -31,14 +30,26 @@ for i in PC_LIST:
     # UPLOAD iTalc public key
 #     if i != 101:
 #         os.system('scp -r "iTALC" Teacher@147.229.29.%i:/cygdrive/c/ProgramData/' % i)
+    # REMOVE DIR
+#     if i != 101:
+#         subprocess.call(['ssh', 'Teacher@147.229.29.%i' % i, 'rm -r /cygdrive/d/StudentsData/Helena'])
+#         subprocess.call(['ssh', 'Teacher@147.229.29.%i' % i, 'rm -r "/cygdrive/d/StudentsData/Helena Jurado"'])
+
+    # UPLOAD OOFEM
+#    if i != 101:
+#        os.system('scp -r "oofem_2.3_x86" Teacher@147.229.29.%i:\'/cygdrive/c/Program\ Files\ \(x86\)/oofem_2.3_x86/\'' % i)
+    # Add to system path - OOFEM
+#     if i != 101:
+#         # print 'cmd /c setx path "%path%;C:\\Program Files (x86)\oofem_2.3_x86"'
+#         subprocess.call(['ssh', 'Teacher@147.229.29.%i' % i, r'cmd /c setx path "%path%;C:\\Program Files (x86)\oofem_2.3_x86\bin" /M'])
 
     # CLEAN DISK D ON STUDENT MACHINES
 #     if i != 101:
 #         subprocess.call(['ssh', 'Teacher@147.229.29.%i' % i, 'rm -r /cygdrive/d/*'])
 
     # Create Student directory on DISK D ON STUDENT MACHINES
-#     if i != 101:
-#         subprocess.call(['ssh', 'Teacher@147.229.29.%i' % i, 'mkdir /cygdrive/d/StudentsData'])
+#    if i != 101:
+#        subprocess.call(['ssh', 'Teacher@147.229.29.%i' % i, 'mkdir /cygdrive/d/StudentsData'])
 
     # fix desktop icons (logout all computers)
     # subprocess.call(['ssh', 'Teacher@147.229.29.%i' % i, 'rm /cygdrive/c/Users/Student/AppData/Local/IconCache.db'])

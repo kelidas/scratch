@@ -30,20 +30,18 @@ return_val = r;
 '''
 
 conv = weave.converters.blitz
-#conv = weave.converters.default
+# conv = weave.converters.default
 compiler_verbose = 0
 compiler = 'gcc'
 
-
-arg_names = ['x', 'y', 'l']
 arg_values = {'x':x, 'y':y, 'l':l}
 
 start = sysclock()
-print weave.inline(c_code, arg_names,
-        local_dict = arg_values,
-        type_converters = conv,
-        compiler = compiler,
-        verbose = compiler_verbose)
+print weave.inline(c_code, arg_values.keys(),
+        local_dict=arg_values,
+        type_converters=conv,
+        compiler=compiler,
+        verbose=compiler_verbose)
 print sysclock() - start, 'c'
 
 
