@@ -1,6 +1,9 @@
 # Notes for sharelatex in docker
 https://github.com/sharelatex/sharelatex/wiki
 
+## move /var/lib/docker to other location
+https://linuxconfig.org/how-to-move-docker-s-default-var-lib-docker-to-another-directory-on-ubuntu-debian-linux
+
 ## run docker container
 ```bash
 $ sudo docker run -d --name sharemongo --restart unless-stopped -v /var/sharemongo:/data/db mongo:latest (:2.6 - old sharelatex)
