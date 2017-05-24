@@ -55,3 +55,10 @@ sudo docker exec -i -t sharelatex /bin/bash
 sudo docker exec sharelatex /bin/bash -c "tail -50 /var/log/sharelatex/document-updater.log"
 sudo docker exec sharelatex /bin/bash -c "tail -50 /var/log/sharelatex/clsi.log"
 ```
+
+## list all users
+```shell
+$ sudo docker exec -i -t sharemongo /bin/bash
+$ mongo
+$ db.users.find()
+```
