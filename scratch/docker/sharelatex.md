@@ -10,7 +10,11 @@ $ sudo docker run -d --name sharemongo --restart unless-stopped -v /var/sharemon
 
 $ sudo docker run -d --name shareredis --restart unless-stopped -v /var/shareredis:/var/lib/redis redis:latest
 
-$ sudo docker run -d -P -p 80:80 --restart unless-stopped -v /var/sharelatex:/var/lib/sharelatex  --env SHARELATEX_MONGO_URL=mongodb://mongo/sharelatex --env SHARELATEX_REDIS_HOST=redis --link sharemongo:mongo --link shareredis:redis --name sharelatex sharelatex/sharelatex
+$ sudo docker run -d -P -p 80:80 --restart unless-stopped \
+    -v /var/sharelatex:/var/lib/sharelatex  \
+    --env SHARELATEX_MONGO_URL=mongodb://mongo/sharelatex \
+    --env SHARELATEX_REDIS_HOST=redis --link sharemongo:mongo \
+    --link shareredis:redis --name sharelatex sharelatex/sharelatex
 ```
 
 ## update parameters of existing container
