@@ -25,7 +25,7 @@ $ sudo docker run -d -P -p 80:80 --restart unless-stopped \
 ```bash
 $ docker exec sharelatex tlmgr install scheme-full
 ```
-- install Microsoft fonts for XeLaTeX (not working in the current docker *sudo apt install ttf-mscorefonts-installer*)
+- install Microsoft fonts for XeLaTeX (apt not working in the current docker *sudo apt install ttf-mscorefonts-installer*)
 ```bash
 $ cd /tmp
 $ wget http://ftp.us.debian.org/debian/pool/contrib/m/msttcorefonts/ttf-mscorefonts-installer_3.6_all.deb
