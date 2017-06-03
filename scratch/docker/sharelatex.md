@@ -22,6 +22,19 @@ sudo docker update --restart=unless-stopped
 ```bash
 $ sudo docker commit sharelatex sharelatex_full
 ```
+## list info
+- list images
+```bash
+$ sudo docker images 
+```
+- list running containers
+```bash
+$ sudo docker ps
+```
+- list all containers
+```bash
+$ sudo docker ps -a
+```
 
 ## backup/migrate mongodb
 save - mongodump
