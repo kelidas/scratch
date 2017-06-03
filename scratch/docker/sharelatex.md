@@ -30,6 +30,15 @@ sudo docker update --restart=unless-stopped
 ```bash
 $ sudo docker commit sharelatex sharelatex_full
 ```
+## update docker image/container
+- backup, remove container
+- run docker containers
+- sharelatex install tlmgr, ...
+```bash
+$ sudo docker pull sharelatex/sharelatex
+$ sudo docker pull redis
+$ sudo docker pull mongo
+```
 ## list info
 - list images
 ```bash
