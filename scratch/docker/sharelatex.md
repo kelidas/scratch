@@ -31,9 +31,9 @@ sudo docker update --restart=unless-stopped
 $ sudo docker commit sharelatex sharelatex_full
 ```
 ## update docker image/container
-- backup, remove container
+- backup data, remove containers
 - run docker containers
-- sharelatex install tlmgr, ...
+- sharelatex - install tlmgr, ...
 ```bash
 $ sudo docker pull sharelatex/sharelatex
 $ sudo docker pull redis
