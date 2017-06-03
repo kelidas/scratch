@@ -42,6 +42,15 @@ $ sudo docker pull sharelatex/sharelatex
 $ sudo docker pull redis
 $ sudo docker pull mongo
 ```
+
+## docker remove
+- remove stopped container, -f running container
+```bash
+$ sudo docker stop sharelatex
+$ sudo docker rm sharelatex
+$ sudo docker rm -f sharelatex
+```
+
 ## list info
 - list images
 ```bash
