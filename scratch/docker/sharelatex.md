@@ -21,6 +21,17 @@ $ sudo docker run -d -P -p 80:80 --restart unless-stopped \
     --link shareredis:redis --name sharelatex sharelatex/sharelatex
 ```
 
+## install latex
+```bash
+$ docker exec sharelatex tlmgr install scheme-full
+```
+- install Microsoft fonts for XeLaTeX (not working in the current docker *sudo apt install ttf-mscorefonts-installer*)
+```bash
+$ cd /tmp
+$ wget http://ftp.us.debian.org/debian/pool/contrib/m/msttcorefonts/ttf-mscorefonts-installer_3.6_all.deb
+$ sudo dpkg -i ttf-mscorefonts-installer_3.6_all.deb
+```
+
 ## update parameters of existing container
 ```bash
 sudo docker update --restart=unless-stopped
