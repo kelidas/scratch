@@ -27,8 +27,11 @@ sudo docker update --restart=unless-stopped
 ```
 
 ## commit docker container
+- useful when changing parameters in *sudo docker run .... sharelatex/sharelatex*
+- one would have to stop sharelatex container, remove container, run container with new paremeters and reinstall complete tlmgr
 ```bash
 $ sudo docker commit sharelatex sharelatex_full
+$ sudo docker run -d -P -p 127.0.0.1:3000:80 ... --name sharelatex sharelatex_full
 ```
 ## update docker image/container
 - backup data, remove containers
