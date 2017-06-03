@@ -98,7 +98,17 @@ sudo docker pull sharelatex/sharelatex
 sudo docker exec sharelatex tlmgr install scheme-full
 sudo docker exec -i -t sharelatex /bin/bash
 
-
+chat.log  
+docstore.log          
+filestore.log      
+real-time.log  
+tags.log          
+web.log
+clsi.log  
+document-updater.log  
+notifications.log  
+spelling.log   
+track-changes.log
 sudo docker exec sharelatex /bin/bash -c "tail -50 /var/log/sharelatex/document-updater.log"
 sudo docker exec sharelatex /bin/bash -c "tail -50 /var/log/sharelatex/clsi.log"
 ```
