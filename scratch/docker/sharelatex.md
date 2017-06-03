@@ -18,6 +18,11 @@ $ sudo docker run -d -P -p 80:80 --restart unless-stopped -v /var/sharelatex:/va
 sudo docker update --restart=unless-stopped
 ```
 
+## commit docker container
+```bash
+$ sudo docker commit sharelatex sharelatex_full
+```
+
 ## backup/migrate mongodb
 save - mongodump
 ```bash
