@@ -16,7 +16,9 @@ $ sudo docker run -d -P -p 80:80 --restart unless-stopped \
     -v /var/sharelatex:/var/lib/sharelatex  \
     --env SHARELATEX_MONGO_URL=mongodb://mongo/sharelatex \
     --env SHARELATEX_REDIS_HOST=redis --link sharemongo:mongo \
-    --link shareredis:redis --name sharelatex sharelatex/sharelatex
+    --link shareredis:redis --name sharelatex sharelatex/sharelatex \
+    --env SHARELATEX_ADMIN_EMAIL=admin@email.cz \
+    --env SHARELATEX_SITE_URL=sharelatex.url.com
 ```
 
 ## update parameters of existing container
