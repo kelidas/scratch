@@ -6,9 +6,11 @@ https://linuxconfig.org/how-to-move-docker-s-default-var-lib-docker-to-another-d
 
 ## run docker container
 ```bash
-$ sudo docker run -d --name sharemongo --restart unless-stopped -v /var/sharemongo:/data/db mongo:latest (:2.6 - old sharelatex)
+$ sudo docker run -d --name sharemongo --restart unless-stopped \
+    -v /var/sharemongo:/data/db mongo:latest (:2.6 - old sharelatex)
 
-$ sudo docker run -d --name shareredis --restart unless-stopped -v /var/shareredis:/var/lib/redis redis:latest
+$ sudo docker run -d --name shareredis --restart unless-stopped \
+    -v /var/shareredis:/var/lib/redis redis:latest
 
 $ sudo docker run -d -P -p 80:80 --restart unless-stopped \
     -v /var/sharelatex:/var/lib/sharelatex  \
