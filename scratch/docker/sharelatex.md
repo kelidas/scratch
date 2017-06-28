@@ -34,7 +34,7 @@ $ sudo dpkg -i ttf-mscorefonts-installer_3.6_all.deb
 
 ## update parameters of existing container
 ```bash
-sudo docker update --restart=unless-stopped
+sudo docker update --restart=unless-stopped sharelatex
 ```
 
 ## commit docker container
