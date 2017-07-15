@@ -7,11 +7,6 @@ import platform
 directory = "."
 files = [v for v in os.listdir(directory) if os.path.splitext(v)[1]==".pdf"]
 
-#print files
-
-if os.access("EPS", os.F_OK)==False:
-    os.mkdir("EPS") #vytvoreni slozky
-
 for i in range(0, len(files)):
     if platform.system() == 'Linux':
         os.system("pdftops -eps "+files[i]+" "+files[i][0:len(files[i])-4]+".eps")
