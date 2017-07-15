@@ -1,6 +1,10 @@
-# Latex to Word
+# Pdflatex to Word
+- convert all figs to eps
+- convertPDFtoEPS.py converts all pdf to eps
+- for other formats use e.g. `$ convert figure.png figure.eps`
 
 ```bash
+$ python convertPDFtoEPS.py
 $ htlatex main.tex main.cfg
 $ tidy -o main.html main.html
 $ python3 main.py
