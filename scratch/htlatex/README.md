@@ -6,11 +6,15 @@
 ```bash
 $ python convertPDFtoEPS.py
 $ htlatex main.tex main.cfg
-$ tidy -o main.html main.html
-$ python3 main.py
 ```
 - cfg - all math as images
-- tidy is optional (remove height and width from images)
+<img src="before.png" width="700">
+
+```bash
+$ python3 main.py
+```
 - main.py add width and height in Math (line math $...$, display math)
+<img src="after.png" width="700">
+
 
 - open in libreOffice, Tools > Links > Break links   and save as docx
