@@ -13,7 +13,7 @@ base_url = 'https://nakup.itesco.cz/groceries/cs-CZ/search?query='
 search = {'pampers3': 'pampers+midi+dry',
           'pampers4': 'pampers+maxi+dry',
           'hami_kase': 'hami+mlecna+kase'}
-directory = 'data'
+directory = os.path.join(os.path.dirname(__file__), 'data')
 
 html = '''<!DOCTYPE html>
 <html>
