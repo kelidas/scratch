@@ -1,9 +1,9 @@
 Specifikace monitoru
-Veličina: Displacements - x(2)
-Zadané umístění: X: 9.7800 [m], Y: 0.0200 [m], Uzel sítě
-Dopočtené umístění: X: 9.7800 [m], Y: 0.0200 [m], Uzel sítě 2302
-Výsledky v monitorovacím bodě
- Hodnoty přenásobeny koeficientem 1.000 [-]
+Veliďż˝ina: Displacements - x(2)
+Zadanďż˝ umďż˝stďż˝nďż˝: X: 9.7800 [m], Y: 0.0200 [m], Uzel sďż˝tďż˝
+Dopoďż˝tenďż˝ umďż˝stďż˝nďż˝: X: 9.7800 [m], Y: 0.0200 [m], Uzel sďż˝tďż˝ 2302
+Vďż˝sledky v monitorovacďż˝m bodďż˝
+ Hodnoty pďż˝enďż˝sobeny koeficientem 1.000 [-]
 -----------------
  Krok     Hodnota
               [m]

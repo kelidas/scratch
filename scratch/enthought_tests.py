@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 #
 # Copyright (c) 2012
 # IMB, RWTH Aachen University,
@@ -12,7 +12,7 @@
 #
 # Thanks for using Simvisage open source!
 #
-#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
 from traits.api import HasTraits, Array, Property, DelegatesTo, CTrait, \
     Instance, Int, Str, List, on_trait_change, Button, Trait, Dict, Enum
@@ -23,24 +23,33 @@ from socket import gethostname
 from spirrid import SPIRRID
 import numpy as np
 import os.path
-import pylab as p # import matplotlib with matlab interface
+import pylab as p  # import matplotlib with matlab interface
 import types
 
 
+class A(HasTraits):
+    a = Property()
+
+    def _get_a(self):
+        print 'jsem tu'
+        return 10
+
+print A().a
+print A().a
+
+
+exit()
+
 
 class EnumExample(HasTraits):
-    a = Trait('Medium', {'Highest':3,
-                              'High':4})
+    a = Trait('Medium', {'Highest': 3,
+                         'High': 4})
 
-    b = Trait({'Highest':3,
-                              'High':4})
+    b = Trait({'Highest': 3,
+               'High': 4})
 
     view = View('a', 'b')
 
 
-
 test = EnumExample()
 test.configure_traits()
-
-
-

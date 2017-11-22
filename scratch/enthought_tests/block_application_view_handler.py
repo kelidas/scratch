@@ -30,76 +30,76 @@ logger = logging.getLogger(__name__)
 ##########################################################################
 
 CloseAction = Action(
-    name   = 'Close',
-    action = '_on_close',
+    name='Close',
+    action='_on_close',
 )
 
 ImportDataFileAction = Action(
-    name   = 'Import Data',
-    action = '_on_import_data_file',
+    name='Import Data',
+    action='_on_import_data_file',
 )
 
 SaveDataAction = Action(
-    name = 'Save Data',
-    action = '_on_save_data',
+    name='Save Data',
+    action='_on_save_data',
 )
 
 ClearContextAction = Action(
-    name = "Clear Context",
-    action = "_on_clear_context",
+    name="Clear Context",
+    action="_on_clear_context",
 )
 
 
 
 OpenAction = Action(
-    name   = 'Open Script',
-    action = '_on_open',
+    name='Open Script',
+    action='_on_open',
 )
 
 SaveAction = Action(
-    name   = 'Save Script',
-    action = '_on_save',
+    name='Save Script',
+    action='_on_save',
 )
 
 SaveAsAction = Action(
-    name   = 'Save Script As',
-    action = '_on_save_as',
+    name='Save Script As',
+    action='_on_save_as',
 )
 
 
 OpenProjectAction = Action(
-    name   = 'Open Project',
-    action = '_on_open_project',
+    name='Open Project',
+    action='_on_open_project',
 )
 
 SaveProjectAction = Action(
-    name = 'Save Project',
-    action = '_on_save_project',
+    name='Save Project',
+    action='_on_save_project',
 )
 
 SaveProjectAsAction = Action(
-    name = 'Save Project As',
-    action = '_on_save_project_as',
+    name='Save Project As',
+    action='_on_save_project_as',
 )
 
 SetToolbarHideAction = Action(
-    name = "Hide Toolbar",
-    action = "_on_toggle_hide",
+    name="Hide Toolbar",
+    action="_on_toggle_hide",
 )
 
 PlotAction = Action(
     name='Plot',
-    action = '_on_plot',
+    action='_on_plot',
 )
 
 RunCustomUIAction = Action(
-    name = "Run Custom UI Script",
-    action = "_on_run_custom_ui",
+    name="Run Custom UI Script",
+    action="_on_run_custom_ui",
 )
 
 BlockApplicationMenuBar = \
         MenuBar(
-            Menu( Group(
+            Menu(Group(
                         OpenProjectAction,
                         OpenAction,
                         ImportDataFileAction,
@@ -108,25 +108,25 @@ BlockApplicationMenuBar = \
                   Group(
                         SaveProjectAction,
                         SaveProjectAsAction,
-                        #SaveDataAction,
+                        # SaveDataAction,
                         SaveAction,
                         SaveAsAction,
                   ),
                   Group(
                         CloseAction,
                   ),
-                  name = 'File' ),
-            Menu( Group(
+                  name='File'),
+            Menu(Group(
                         PlotAction,
                         ),
                   name='Plot'),
-                  
-            #Menu( Group(ClearContextAction),
+
+            # Menu( Group(ClearContextAction),
             #      name = "Data" ),
-            Menu( Group(
+            Menu(Group(
                         SetToolbarHideAction,
                   ),
-                  name = "Preferences" ),
+                  name="Preferences"),
         )
 
 
@@ -158,24 +158,24 @@ class BlockApplicationViewHandler(Controller):
                        'Text files (*.txt)|*.txt|' + \
                        'CSV files (*.csv)|*.csv|' + \
                        'LAS files (*.las)|*.las|' + \
-                       'Pickled files (*.pickle)|*.pickle|'+ \
+                       'Pickled files (*.pickle)|*.pickle|' + \
                        'Segy files (*.segy)|*.segy'
         except ImportError:
             wildcard = 'Pickled files (*.pickle)|*.pickle'
-        
+
         app = info.object
-        file_dialog = FileDialog(action = 'open',
-                                 default_directory = app.data_directory,
-                                 wildcard = wildcard,
+        file_dialog = FileDialog(action='open',
+                                 default_directory=app.data_directory,
+                                 wildcard=wildcard,
                                  )
         file_dialog.open()
 
         data_context, filename = None, file_dialog.path
         if file_dialog.path != '':
             filesplit = os.path.splitext(filename)
-            if filesplit[1] != '': 
-                configurable_import = ConfigurableImportUI(filename = filename,
-                                                           wildcard = wildcard)
+            if filesplit[1] != '':
+                configurable_import = ConfigurableImportUI(filename=filename,
+                                                           wildcard=wildcard)
                 ui = configurable_import.edit_traits(kind='livemodal')
                 if ui.result and configurable_import.context:
                     data_context = configurable_import.context
@@ -203,9 +203,9 @@ class BlockApplicationViewHandler(Controller):
             if candidate in context.keys():
                 index = candidate
                 break
-            
+
         p = SimpleDataContextPlot(data_context=context, index=index)
-    
+
     #------------------------------------------------------------------------
     # Script loading/saving
     #------------------------------------------------------------------------
@@ -277,7 +277,7 @@ class BlockApplicationViewHandler(Controller):
         else:
             project_dir = ETSConfig.user_data
         return project_dir
-    
+
     def _save_project_graphically(self, parent, project, dirname):
         """ Saves the given project to a name **dirname**.  Gives the user
         graphical feedback.
@@ -297,7 +297,7 @@ class BlockApplicationViewHandler(Controller):
         app = info.object
         project_dir = self._get_current_project_dir(app.project)
         dir_dialog = DirectoryDialog(action='open', default_path=project_dir,
-                                     size=(500,400))
+                                     size=(500, 400))
         dir_dialog.open()
         if dir_dialog.path != '':
             try:
@@ -325,9 +325,9 @@ class BlockApplicationViewHandler(Controller):
         project = info.object.project
         base_dir = self._get_current_project_dir(project)
         project_name = create_unique_project_name(base_dir, 'Converge Project')
-        pfui = ProjectFolderUI(base_dir = base_dir,
-                               project_name = project_name)
-        ui = pfui.edit_traits(kind = 'livemodal')
+        pfui = ProjectFolderUI(base_dir=base_dir,
+                               project_name=project_name)
+        ui = pfui.edit_traits(kind='livemodal')
         if ui.result:
             project_dir = os.path.join(pfui.base_dir, pfui.project_name)
             self._save_project_graphically(info.ui.control, project, project_dir)
@@ -368,7 +368,7 @@ class BlockApplicationViewHandler(Controller):
 #        return
 #
 #
-#    
+#
 #    def _on_clear_context(self, info):
 #        """ Clears the active context
 #        """
