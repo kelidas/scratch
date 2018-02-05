@@ -74,7 +74,7 @@ class SingleShape(Shape):
     def __init__(self, **kwds):
         self.point = kwds.get('point', (0, 0))
         self.px, self.py = self.point
-        self.angle = kwds.get('angle', 0)
+        self.angle = kwds.get('angle', 0) / 180 * np.pi
         self.hollow = -1 if kwds.get('hollow', False) else 1
         super().__init__()
         # self.ref_point = kwds.get('ref_point', self.C)
@@ -496,7 +496,8 @@ shape_dict = {'Rectangle': Rectangle,
               'Parabola': Parabola,
               'SemiParabola': SemiParabola,
               'ParabolaSpandrel': ParabolaSpandrel,
-              'Triangle': Triangle}
+              'Triangle': Triangle,
+              'PolygonShape': PolygonShape}
 
 if __name__ == '__main__':
     r = Rectangle(5, 10)
@@ -531,7 +532,7 @@ if __name__ == '__main__':
                         Triangle(.06, .045, quadrant=2, point=(0.06, .02), hollow=False),
                         Rectangle(.03, .045, point=(.09, .02), hollow=False)])
 
-    r = CompositeShape.fromtxt('example.ini')
+    r = CompositeShape.fromtxt('docs/examples/example.ini')
 
     r = CompositeShape([Rectangle(.4, .6, point=(0, 0), hollow=False),
                         Circle(.1, point=(.2, .4), hollow=True),
@@ -555,6 +556,18 @@ if __name__ == '__main__':
                                       [-.2, 0]]),
                         Circle(.1, point=(.2, .4), hollow=True)])
 
+    #r = CompositeShape.fromtxt('docs/examples/Rectangle.ini')
+    r = CompositeShape([PolygonShape([[0, 0],
+                                      [1, 0],
+                                      [1, .8],
+                                      [1.9, 1.7],
+                                      [-.3, 1.7],
+                                      [0, .8],
+                                      [0, 0]]),
+                        Circle(.3, point=(.5, 1.2), hollow=True)])
+
+    r = CompositeShape.fromtxt('docs/examples/Polygon_Triangle_rot.ini')
+    print(r.shapes[0].poly)
     for i in base_props:
         print(i, getattr(r, i))
     print('theta =', r.theta * 180 / np.pi)
