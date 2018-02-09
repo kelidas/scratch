@@ -11,13 +11,15 @@ from collections import OrderedDict
 import datetime
 
 base_url = 'https://nakup.itesco.cz/groceries/cs-CZ/search?query='
-search = {'pampers2': 'pampers+mini+dry',
-          'pampers2premium': 'pampers+mini+premium',
-          'pampers3': 'pampers+midi+dry',
-          'pampers3premium': 'pampers+midi+premium',
-          'pampers4': 'pampers+maxi+dry',
-          'pampers4premium': 'pampers+maxi+premium',
-          'hami_kase': 'hami+mlecna+kase'}
+search = OrderedDict()
+search.update({'pampers2': 'pampers+mini+dry'})
+search.update({'pampers2premium': 'pampers+mini+premium'})
+search.update({'pampers3': 'pampers+midi+dry'})
+search.update({'pampers3premium': 'pampers+midi+premium'})
+search.update({'pampers4': 'pampers+maxi+dry'})
+search.update({'pampers4premium': 'pampers+maxi+premium'})
+search.update({'hami_kase': 'hami+mlecna+kase'})
+
 directory = os.path.join(os.path.dirname(__file__), 'data')
 
 html = '''<!DOCTYPE html>
@@ -37,14 +39,16 @@ def get_price(search):
     response = requests.get(base_url + search)
 
     html = response.text
-    p = re.findall('unitPrice&quot;,(\d*.[\d]*)', html)
-    p = [float(i.replace(chr(44), '.')) for i in p]
-    return np.min(p)
+    p = re.findall('price&quot;:(\d*.[\d]*),&quot;unitPrice&quot;:(\d*.[\d]*)', html)
+    p = np.array([[float(i[0].replace(chr(44), '.')), float(i[1].replace(chr(44), '.'))] for i in p])
+    pmin = np.argmin(p[:, 1])
+    return p[pmin]
 
 
 body = ''
 for name, srch in search.items():
-    p = get_price(srch)
+    price = get_price(srch)[0]
+    p = get_price(srch)[1]
     p_old = np.array([])
     time = np.array([])
     p_last = 0
@@ -69,7 +73,7 @@ for name, srch in search.items():
     fig.autofmt_xdate()
     fig.savefig(fname + '.png')
 
-    body += '<h3>min={}, new={}</h3>'.format(min(p_new), p)
+    body += '<h3>min={}, new={}</h3>, price={}'.format(min(p_new), p, price)
     body += '<img src={}.png><br>'.format(name)
 
 with open(os.path.join(directory, 'prices.html'), 'w') as f:
