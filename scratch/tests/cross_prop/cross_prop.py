@@ -567,6 +567,12 @@ if __name__ == '__main__':
                         Circle(.3, point=(.5, 1.2), hollow=True)])
 
     r = CompositeShape.fromtxt('docs/examples/Polygon_Triangle_rot.ini')
+
+    r = CompositeShape([PolygonShape([[0, 0],
+                                      [300., 0],
+                                      [300, 300],
+                                      [0, 150],
+                                      [0, 0]])])
     print(r.shapes[0].poly)
     for i in base_props:
         print(i, getattr(r, i))

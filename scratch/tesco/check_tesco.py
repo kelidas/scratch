@@ -69,7 +69,7 @@ for name, srch in search.items():
     fig.autofmt_xdate()
     fig.savefig(fname + '.png')
 
-    body += '<h3>min={}, new={}, {}</h3>'.format(min(p_new), p)
+    body += '<h3>min={}, new={}</h3>'.format(min(p_new), p)
     body += '<img src={}.png><br>'.format(name)
 
 with open(os.path.join(directory, 'prices.html'), 'w') as f:
