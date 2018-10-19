@@ -129,3 +129,11 @@ sudo docker exec sharelatex /bin/bash -c "tail -50 /var/log/sharelatex/clsi.log"
 $ sudo docker exec -i -t sharemongo /bin/bash
 $ mongoexport -d sharelatex -c users -f email --csv
 ```
+
+## mongo
+```shell
+$ mongo
+$ use sharelatex
+$ sudo docker exec -i -t sharemongo /bin/bash
+$ db.projects.updateMany({}, {$push: {collaberator_refs: ObjectId("54d3fcb293e202290a00e6d2")}})
+```
