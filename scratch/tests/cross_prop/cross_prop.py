@@ -83,9 +83,10 @@ class SingleShape(Shape):
 
     def _calculate(self):
         self._calculate_baseprops()
-        self._move()
         if self.angle != 0:
             self._rotate()
+        self._move()
+
         self._calculate_props()
 
     def _move(self):
@@ -422,10 +423,10 @@ class CompositeShape(Shape):
 
         i1 = self.i1
         i2 = self.i2
-        p = patches.Ellipse(self.C, i1, i2, fill=False,
+        p = patches.Ellipse(self.C, 2 * i1, 2 * i2, fill=False,
                             angle=self.theta*180/np.pi, ec='k')
         ax.add_patch(p)
-        line = np.array([[-i1, i1], [0, 0]])
+        line = np.array([[-2 * i1, 2 * i1], [0, 0]])
         l1 = np.dot(rot(self.theta).T, line).T + self.C
         ax.plot(l1[:, 0], l1[:, 1], 'k-.', lw=.8)
         l2 = np.dot(rot(self.theta+np.pi/2).T, line).T + self.C
@@ -573,6 +574,34 @@ if __name__ == '__main__':
                                       [300, 300],
                                       [0, 150],
                                       [0, 0]])])
+
+    r = CompositeShape([Rectangle(220, 80, point=(0, 0), hollow=False),
+                        Rectangle(40, 220, point=(0, 80), hollow=False)])
+
+    #r = CompositeShape([Circle(.5, point=(-1.5, 1), hollow=True),
+    #                    Triangle(3, 6, 2, point=(0, 0), hollow=False)])
+
+    r = CompositeShape([Circle(3, point=(-1, 3), hollow=False),
+                        SemiCircle(2, point=(0, 3), angle=90, hollow=True)])
+
+    r = CompositeShape([Circle(3, point=(1, 3), hollow=False),
+                        SemiCircle(2, point=(0, 3), angle=90, hollow=True)])
+
+    r = CompositeShape([PolygonShape([[0, 0],
+                                      [2., 0],
+                                      [2, 2],
+                                      [1, 2],
+                                      [0, 1],
+                                      [0,0]])])
+    
+    r = CompositeShape([PolygonShape([[-.2, 0],
+                                      [.4, 0],
+                                      [0.4, .6],
+                                      [0, .6],
+                                      [0, 0.3],
+                                      [-.2, 0]]),
+                        Circle(.1, point=(.2, .4), hollow=True)])
+
     print(r.shapes[0].poly)
     for i in base_props:
         print(i, getattr(r, i))
@@ -582,6 +611,16 @@ if __name__ == '__main__':
         print(i, getattr(r, i))
     #print(r.i1t)
     #print(r.i2t)
+
+    print(r.Ixt + r.A * r.yt**2)
+    print('Iy', r.Iyt + r.A * r.xt**2)
+    print(r.Dxyt + r.A * r.xt * r.yt)
+
+    print(np.arctan(2 * r.Dxyt / (r.Iyt - r.Ixt)) / 2 * 180 / np.pi)
+
+    print('invariant 1', r.Ixt + r.Iyt, r.I1 + r.I2)
+    print('invariant 2', r.Ixt * r.Iyt - r.Dxyt**2, r.I1 * r.I2)
+    
 
     fig, ax = plt.subplots(tight_layout=True)
     r.draw_mpl(ax)

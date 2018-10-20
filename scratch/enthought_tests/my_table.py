@@ -18,8 +18,8 @@ from traitsui.api \
 from traitsui.table_column \
     import ObjectColumn
     
-from traitsui.extras.checkbox_column \
-    import CheckboxColumn
+#from traitsui.extras.checkbox_column \
+#    import CheckboxColumn
     
 
 # Create a specialized column to set the text color differently based upon

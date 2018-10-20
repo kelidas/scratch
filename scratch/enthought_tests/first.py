@@ -9,6 +9,12 @@ from traits.api import Delegate, HasTraits, Instance, \
 
 import traitsui
 
+from traits.etsconfig.api import ETSConfig
+ETSConfig.toolkit = 'qt5'
+
+import os
+os.environ['QT_API'] = 'pyqt' 
+
 class Parent ( HasTraits ):
     
     # INITIALIZATION: last_name' is initialized to '':
@@ -26,7 +32,7 @@ class Child ( HasTraits ):
     
     #NOTIFICATION: this method is called when 'age' changes:
     def _age_changed ( self, old, new ):
-        print 'Age changed from %s to %s' % ( old, new )
+        print('Age changed from %s to %s' % ( old, new ))
         
 # Set up the example:
 joe = Parent()
@@ -35,7 +41,7 @@ moe = Child()
 moe.father = joe
 
 # DELEGATION in action:
-print "Moe's last name is %s " % moe.last_name
+print("Moe's last name is %s " % moe.last_name)
 #Result:
 # Moe's last name is Johnson
 
