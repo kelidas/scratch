@@ -132,8 +132,11 @@ $ mongoexport -d sharelatex -c users -f email --csv
 
 ## mongo
 ```shell
+$ sudo docker exec -i -t sharemongo /bin/bash
 $ mongo
 $ use sharelatex
-$ sudo docker exec -i -t sharemongo /bin/bash
 $ db.projects.updateMany({}, {$push: {collaberator_refs: ObjectId("54d3fcb293e202290a00e6d2")}})
+$ mongoexport -d sharelatex -c users -fields _id,email,loginCount --csv
+$ mongoexport -d sharelatex -c projects -fields _id,name,owner_ref --csv
+
 ```
