@@ -39,6 +39,9 @@ def get_price(search):
     response = requests.get(base_url + search)
 
     html = response.text
+    
+    #with open('page.html', 'w') as f:
+    #    f.write(html)
     p = re.findall('price&quot;:(\d*.[\d]*),&quot;unitPrice&quot;:(\d*.[\d]*)', html)
     p = np.array([[float(i[0].replace(chr(44), '.')), float(i[1].replace(chr(44), '.'))] for i in p])
     pmin = np.argmin(p[:, 1])

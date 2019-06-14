@@ -601,6 +601,11 @@ if __name__ == '__main__':
                                       [0, 0.3],
                                       [-.2, 0]]),
                         Circle(.1, point=(.2, .4), hollow=True)])
+    
+    r = CompositeShape([Rectangle(.04, .22, point=(0, 0.13), hollow=False),
+                        Rectangle(.22, .08, point=(0, 0.05), hollow=False),
+                        Circle(.01, point=(.19, .1), hollow=True),
+                        Triangle(.05, .05, 4, point=(0, 0.05), hollow=False)])
 
     print(r.shapes[0].poly)
     for i in base_props:

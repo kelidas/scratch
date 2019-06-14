@@ -1,0 +1,13 @@
+ 
+- https://mechanicalc.com/reference/cross-sections
+- https://github.com/aurelienpierre/LibreMecaDesign/tree/9bd42fc1d11c236ae080876772ee29bffefbaf42/lib
+- https://github.com/jkbgbr/BeamFE2/blob/ad0ef9cfc0637b027a5d9f56edc218ceb7d71266/BeamFE2/BeamSections.py
+- https://github.com/search?l=Python&p=2&q=%20python%20triangle%20area%20inertia&type=Code&utf8=%E2%9C%93
+- https://stackoverflow.com/questions/25227100/best-way-to-plot-an-angle-between-two-lines-in-matplotlib
+- https://stackoverflow.com/questions/141545/how-to-overload-init-method-based-on-argument-type
+- https://github.com/search?l=Python&q=draw+internal+forces+python&type=Code&utf8=%E2%9C%93
+- https://github.com/cristobaltapia/sajou
+- https://github.com/hackl/TikZ-StructuralAnalysis/blob/master/stanli.sty
+- https://github.com/slightlynybbled/engineering_notation
+- https://github.com/cristobaltapia/sajou/blob/master/sajou/plot/display.py
+- https://www.wiley.com//legacy/wileychi/deborst/material.html
