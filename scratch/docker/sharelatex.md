@@ -12,6 +12,7 @@ $ sudo docker run -d --name sharemongo --restart unless-stopped \
 $ sudo docker run -d --name shareredis --restart unless-stopped \
     -v /var/shareredis:/var/lib/redis redis:latest
 
+OLD
 $ sudo docker run -d -P -p 80:80 --restart unless-stopped \
     -v /var/sharelatex:/var/lib/sharelatex  \
     --env SHARELATEX_ADMIN_EMAIL=admin@email.cz \
@@ -19,6 +20,9 @@ $ sudo docker run -d -P -p 80:80 --restart unless-stopped \
     --env SHARELATEX_MONGO_URL=mongodb://mongo/sharelatex \
     --env SHARELATEX_REDIS_HOST=redis --link sharemongo:mongo \
     --link shareredis:redis --name sharelatex sharelatex/sharelatex
+
+NEW
+$ sudo docker-compose -f docker-compose.yml up -d
 ```
 
 ## install latex

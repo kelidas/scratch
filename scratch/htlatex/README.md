@@ -1,6 +1,6 @@
 # Pdflatex to Word
 - convert all figs to eps
-- convertPDFtoEPS.py converts all pdf to eps (`mogrify -format .eps *.pdf`)
+- convertPDFtoEPS.py converts all pdf to eps (`mogrify -format eps *.pdf`)
 - for other formats use e.g. `$ convert figure.png figure.eps`
 
 ```bash
