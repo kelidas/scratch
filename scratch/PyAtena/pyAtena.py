@@ -37,21 +37,21 @@ def execute_pool(func, arg_lst):
     try:
         pool = multiprocessing.Pool(processes=CPU_NUM)
         pool.map_async(func, arg_lst, chunksize=1)
-        print 'pool map complete'
+        print('pool map complete')
     except (KeyboardInterrupt, SystemExit):
-        print 'got ^C while pool mapping, terminating the pool'
+        print('got ^C while pool mapping, terminating the pool')
         pool.terminate()
-        print 'pool is terminated'
-    except Exception, e:
-        print 'got exception: %r, terminating the pool' % (e,)
+        print('pool is terminated')
+    except Exception as e:
+        print('got exception: %r, terminating the pool' % (e,))
         pool.terminate()
-        print 'pool is terminated'
+        print('pool is terminated')
     finally:
-        print 'joining pool processes'
+        print('joining pool processes')
         pool.close()
         pool.join()
-        print 'join complete'
-    print 'the end'
+        print('join complete')
+    print('the end')
 
 def run_mar(arg):
     with open('NULL', "w") as f:
@@ -83,7 +83,7 @@ def run_mar(arg):
     # # end export
 
 
-    print 'start', arg[0]
+    print('start', arg[0])
     sys.stdout.flush()
 
     import time
@@ -104,7 +104,7 @@ def run_mar(arg):
     # last step for delete
     last_step = number_of_steps
     steps_to_save.append(last_step)
-    print 'last step', last_step
+    print('last step', last_step)
 
 #    if tmp.max() == max_it:
 #        print 'Number of iteration exceeded!'
@@ -115,21 +115,21 @@ def run_mar(arg):
     for i in range(int(start_step), int(last_step) + 1, 10):
         steps_to_save.append(i)
 
-    print 'steps to save', steps_to_save
-    print 'afds'
+    print('steps to save', steps_to_save)
+    print('afds')
 
     file_lst = os.listdir(os.path.join(DIR, arg[0], 'results'))
     step_num = [int(os.path.splitext(f)[1][1:]) for f in file_lst]
-    print step_num
+    print(step_num)
     for idx, step in enumerate(step_num):
         if step in steps_to_save:
             pass
         else:
-            print 'mazu', os.path.join(DIR, arg[0], 'results', file_lst[idx])
+            print('mazu', os.path.join(DIR, arg[0], 'results', file_lst[idx]))
             try:
                 os.remove(os.path.join(DIR, arg[0], 'results', file_lst[idx]))
             except:
-                print 'nejde'
+                print('nejde')
     sys.stdout.flush()
 
     time.sleep(60)
@@ -169,8 +169,12 @@ class Preprocessor(HasTraits):
     model_data = Property(Str, depends_on='model_inp')
     @cached_property
     def _get_model_data(self):
-        infile = open(self.model_inp, 'r')
-        return infile.read()
+        if os.path.exists(self.model_inp):
+            with open(self.model_inp, 'r') as infile:
+                return infile.read()
+        else:
+            return ''
+
 
     number_of_rvs = Property(Int, depends_on='model_data')
     @cached_property
@@ -226,7 +230,7 @@ class Preprocessor(HasTraits):
             outfile = open(os.path.join(DIR, 'test.inp'), 'w')
             self._insert_vars_to_inp(outfile, vals)
             outfile.close()
-            print 'test'
+            print('test')
 #        if self.number_of_fields > 0:
 #            pass
 
@@ -244,7 +248,7 @@ class Preprocessor(HasTraits):
                 if self.number_of_rvs > 0:
                     self._insert_vars_to_inp(outfile, self.freet_data[idx, :])
                 outfile.close()
-                print 'TASK ' + task + ' created'
+                print('TASK ' + task + ' created')
         else:
             pass
 
@@ -285,9 +289,9 @@ class Preprocessor(HasTraits):
             ERR = task + '.err'
             cmd_lst.append(('AtenaConsole64.exe /D "{}" /O /extend_real_output_width /execute "{}" "{}" "{}" "{}"'.format(DIR, INP, OUT, MSG, ERR)))
         arg_lst = zip(self.task_lst, cmd_lst, self.last_steps)
-        print self.task_lst
-        print self.last_steps
-        print cmd_lst
+        print(self.task_lst)
+        print(self.last_steps)
+        print(cmd_lst)
         # run_mar(arg_lst[0])
         execute_pool(run_mar, arg_lst)
 
@@ -354,5 +358,5 @@ if __name__ == '__main__':
     # pool = multiprocessing.Pool(processes=1)
     # result = pool.map(subprocess.call, m)
 
-    print 'END!'
+    print('END!')
 
