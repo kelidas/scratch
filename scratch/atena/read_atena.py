@@ -1,5 +1,13 @@
 import numpy as np
 import re
+from traits.api import HasTraits, Float, Property, cached_property, \
+    Event, Array, Instance, Range, on_trait_change, Bool, Trait, DelegatesTo, \
+    Constant, Directory, File, Str, Button, Int, List,Code
+from pyface.api import FileDialog, warning, confirm, ConfirmationDialog, YES
+from traitsui.api import View, Item, Group, OKButton,CodeEditor, TextEditor
+from pyface.image_resource import ImageResource
+import pandas as pd
+from io import StringIO
 
 sourceEncoding = "cp1250"
 targetEncoding = "utf-8"
@@ -16,26 +24,24 @@ def _locate_line(file_object, info_pattern):
         info_line = file_object.readline()
     return info_line
 
-def _extract_monitors(atena_file):
+def _extract_monitors(data):
     # extract monitor data to separate files
-    infile = open(atena_file, 'r')
-    monitor_num = 0
+    infile = data #open(data, 'r', encoding=sourceEncoding)
+    monitors = []
     while 1:
         line = _locate_line(infile, r'Specifikace monitoru')
         if not line:
-            monitor_num -= 1
             break
-        outfile = open('monitor_%02i.txt' % monitor_num, 'w')
-        while 1:
+        monitor = ''
+        for line in infile:
             if line.split() != []:
-                outfile.write(unicode(line, sourceEncoding).encode(targetEncoding))
-                line = infile.readline()
+                print(line)
+                monitor += line
             else:
-                monitor_num += 1
                 break
-        outfile.close()
+        monitors.append(monitor.encode())
     infile.close()
-    return monitor_num
+    return monitors
 
 def _list_to_array(inlist):
     res_lengths = [len(item) for item in inlist]
@@ -58,62 +64,46 @@ def _list_to_array(inlist):
 #        atena_excel.append(vals)
 
 
-atena_excel = []
-for file_i in range(3):
+def gen_excel(data):
     # specielne pro dany pripad (steps, mon1, mon2, mon3) -> (steps,mon2,mon1,mon3)
-    monitor_num = _extract_monitors('atena_out_%i.txt' % (file_i + 1))
-    for i in [1, 0, 2]:
-        steps, vals = np.loadtxt('monitor_%02i.txt' % i, skiprows=10).T
-        if i == 1:
-            atena_excel.append(steps)
-            atena_excel.append(vals)
-            atena_excel.append(np.array([0]))
-        elif i == 0:
-            atena_excel.append(vals)
+    monitors = _extract_monitors(data)
+    atena_excel = []
+    for mi, monitor in enumerate(monitors):
+        monitor_vals = pd.read_csv('monitor_00.txt', skiprows=10, header=None, names=['step', 'val'], index_col=None, sep='\s+')
+        if mi == 0:
+            atena_excel.append(monitor_vals['step'].to_numpy())
+            atena_excel.append(monitor_vals['val'].to_numpy())
         else:
-            atena_excel.append(vals)
-            atena_excel.append(np.array([0]))
-
-excel_arr = _list_to_array(atena_excel)
-
-
-# np.savetxt('excel_data.txt', excel_arr)
-
-outfile = open('excel_data.txt', 'w')
-for row in excel_arr:
-    temp = 0
-    for item in row:
-        if temp == 0:
-            outfile.write('%i;' % item)
-            temp += 1
-        elif temp == 1:
-            outfile.write('%.4e;' % item)
-            temp += 1
-        elif temp == 2:
-            outfile.write(';')
-            temp += 1
-        elif temp == 3:
-            outfile.write('%.4e;' % item)
-            temp += 1
-        elif temp == 4:
-            outfile.write('%.4e;' % item)
-            temp += 1
-        elif temp == 5:
-            outfile.write(';')
-            temp = 0
-    outfile.write('\n')
-outfile.close()
-
-# zlepseni
-outfile = open('excel_data.txt', 'r')
-data = outfile.read()
-outfile.close()
-infile = open('excel_data.txt', 'w')
-data = data.replace(';0;', ';;')
-data = data.replace(';0.0000e+00;', ';;')
-data = data.replace(';%.4e;' % 0, ';;')
-infile.write(data)
-infile.close()
+            atena_excel.append(monitor_vals['val'].to_numpy())
+    excel_arr = np.array(atena_excel).T
+    return excel_arr
 
 
-print 'END!'
+
+
+class Replacer(HasTraits):
+    input_str = Str
+    output_str = Str
+
+
+    replace = Button
+    def _replace_fired(self):
+        excel_arr = gen_excel(StringIO(self.input_str))
+        df = pd.DataFrame(excel_arr)
+        self.output_str = df.to_string(index=None, header=None)
+        df.to_clipboard(index=None, header=None)
+
+    traits_view = View(
+                       Item('input_str', editor=CodeEditor(lexer='bibtex', show_line_numbers=False)),
+                       Item('replace'),
+                       Item('output_str', editor=CodeEditor(lexer='bibtex', show_line_numbers=False)),
+                        title='Replacer',
+                        id='',
+                        dock='tab',
+                        resizable=True,
+                        width=.4,
+                        height=.5,
+                        icon = ImageResource('w.ico'),
+                        buttons=[]) # OKButton
+
+Replacer().configure_traits()
